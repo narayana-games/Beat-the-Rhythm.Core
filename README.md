@@ -6,11 +6,13 @@ This repository was originally developed for and is used by our Virtual Reality 
 
 (Draft, this may still change)
 
-The Beat the Rhythm core framework packages are licensed under the [Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/legalcode) license. You can use this both for commercial and non-commercial projects as long as you properly include attribution:
+The Beat the Rhythm core framework packages are licensed under the [Apache 2.0 License](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#fulltext) ([TL;DR summary](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#summary)). See the files LICENSE and NOTICE for details. You may use the contents of this repository both in non-commercial and commercial projects as long as you properly include attribution:
 
 ## Attribution
 
-On the main UI screen, located so it is visible to players and can be interacted with conveniently, include the text "Powered by:" and our Beat the Rhythm logo. The logo must have a link to https://beat-the-rhythm-vr.com/ (in VR games, that link should be opened in a flatscreen Window). In credits available online, you can alternatively use a text version without the logo: 
+In binary builds (executable applications), on the main UI screen, located so it is visible to players and can be interacted with conveniently, include the text "Powered by:" and our Beat the Rhythm logo. The logo must have a link to https://beat-the-rhythm-vr.com/ (in VR games, that link should be opened in a flatscreen Window).
+
+In credits available online, you can alternatively use a text version without the logo: 
 
 *Powered by: [Beat the Rhythm](https://beat-the-rhythm-vr.com/)*
 
