@@ -6,7 +6,7 @@ This repository was originally developed for and is used by our Virtual Reality 
 
 (Draft, this may still change)
 
-The Beat the Rhythm core framework packages are licensed under the [Apache 2.0 License](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#fulltext) ([TL;DR summary](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#summary)). See the files LICENSE and NOTICE for details. You may use the contents of this repository both in non-commercial and commercial projects as long as you properly include attribution:
+The Beat the Rhythm core framework packages are licensed under the [Apache 2.0 License](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#fulltext) ([TL;DR summary](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#summary)), with an exception concerning attribution that applies to executable binary builds. See the files LICENSE and NOTICE for details. You may use the contents of this repository both in non-commercial and commercial projects as long as you properly include attribution:
 
 ## Attribution
 
