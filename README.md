@@ -10,6 +10,12 @@ The Beat the Rhythm core framework packages are licensed under the [Attribution-
 
 ## Attribution
 
-On the main UI screen, located so it is visible to players and can be interacted with conveniently, include the text "Powered by:" and our Beat the Rhythm logo. The logo must have a link to https://beat-the-rhythm-vr.com/ (in VR games, that link should be opened in a flatscreen Window). In credits available online, you can alternatively use a text version without the logo: *Powered by: [Beat the Rhythm](https://beat-the-rhythm-vr.com/)*. In credits on paper that cannot have links, include the URL: *Powered by: Beat the Rhythm (https://beat-the-rhythm-vr.com/)*.
+On the main UI screen, located so it is visible to players and can be interacted with conveniently, include the text "Powered by:" and our Beat the Rhythm logo. The logo must have a link to https://beat-the-rhythm-vr.com/ (in VR games, that link should be opened in a flatscreen Window). In credits available online, you can alternatively use a text version without the logo: 
+
+*Powered by: [Beat the Rhythm](https://beat-the-rhythm-vr.com/)*.
+
+In credits on paper that cannot have links, include the URL:
+
+*Powered by: Beat the Rhythm (https://beat-the-rhythm-vr.com/)*.
 
 Please note that this *does not cover* any other usage of the "Beat the Rhythm", "Holodance", "Beatographer" or "narayana games" branding in any software, resources, advertising or promotion, as this is protected by trademark law.
