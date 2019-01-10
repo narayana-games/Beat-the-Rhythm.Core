@@ -1,0 +1,14 @@
+{
+    "name": "_NarayanaGames.BtR.Mapping",
+    "references": [
+        "NarayanaGames.BtR.Maps"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
