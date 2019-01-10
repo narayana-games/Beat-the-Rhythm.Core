@@ -43,7 +43,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public List<string> sequenceContainerIds = null;
 
         /// <summary>List of actual sequences; must match up with MapContainer.sections!</summary>
-        public List<Track> sequences = new List<Track>();
+        public List<Sequence> sequences = new List<Sequence>();
+
     }
 
 }
