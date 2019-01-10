@@ -122,5 +122,55 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         /// <summary>List of actual tracks.</summary>
         public List<Track> tracks = new List<Track>();
+
+
+        public Section AddSection(double timeInSong) {
+            // TODO: Do some sanity checks to make this safe
+            Section newSection = new Section();
+            newSection.startTime = timeInSong;
+            sections.Add(newSection);
+            //sections.Sort();
+            return newSection;
+        }
+
+        public int FindSectionIndex(Section section) {
+            for (int i = 0; i < sections.Count; i++) {
+                if (sections[i] == section) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public Section FindSectionAt(double timeInSong) {
+            for (int i = 0; i < sections.Count; i++) {
+                if (sections[i].startTime <= timeInSong && timeInSong <= sections[i].startTime + sections[i].duration) {
+                    return section;
+                }
+            }
+            return null;
+        }
+
+        public Track AddTrack() {
+            Track newTrack = new Track();
+            tracks.Add(newTrack);
+            return newTrack;
+        }
+
+        public Track FindTrack(int trackId) {
+            return tracks[trackId];
+        }
+
+        public Sequence FindSequenceFor(Section section, Track track) {
+            for (int i = 0; i < sections.Count; i++) {
+                if (sections[i] == section) {
+                    if (track.sequences.Count > i) {
+                        return track.sequences[i];
+                    }
+                }
+            }
+            return null;
+        }
+
     }
 }

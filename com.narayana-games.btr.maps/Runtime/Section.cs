@@ -69,6 +69,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>Tempo of this section in BPM.</summary>
         public float bpm = 120;
 
+        public void CalculateBPM() {
+            double timePerBeat = duration / (barsPerSection * beatsPerBar);
+            bpm = (float) (60.0 / timePerBeat);
+        }
     }
 
 }
