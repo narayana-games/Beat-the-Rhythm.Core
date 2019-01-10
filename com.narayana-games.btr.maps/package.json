@@ -3,7 +3,7 @@
     "displayName": "Beat the Rhythm - Maps",
     "version": "0.1.0",
     "unity": "2018.3",
-    "description": "The Visual Effect Graph is a node based visual effect editor. It enables artists to author next generation visual effects simulated directly on GPU",
+    "description": "Base data structures used for mapping songs based on the Beatographer / Beat the Rhythm / Holodance code base.",
     "keywords": [
         "rhythm",
         "vr",
