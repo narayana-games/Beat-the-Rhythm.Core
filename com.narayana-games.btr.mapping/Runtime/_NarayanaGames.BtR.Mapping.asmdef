@@ -1,5 +1,5 @@
 {
-    "name": "_NarayanaGames.BtR.Mapping",
+    "name": "NarayanaGames.BtR.Mapping",
     "references": [
         "NarayanaGames.BtR.Maps"
     ],
