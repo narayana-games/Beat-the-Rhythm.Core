@@ -1,10 +1,10 @@
 ﻿#region Copyright and License Information
 /*
  * Copyright (c) 2015-2019 narayana games UG.  All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  * See LICENSE and NOTICE in the project root for license information.
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ using UnityEngine.Events;
 namespace NarayanaGames.BeatTheRhythm.Mapping {
 
     /// <summary>
-    ///     A very simple keyboard based mapper. Simply set up the keys you 
+    ///     A very simple keyboard based mapper. Simply set up the keys you
     ///     want to use for mapping, and map away.
     /// </summary>
     public class KeyboardMapper : MonoBehaviour {

@@ -1,10 +1,10 @@
 ﻿#region Copyright and License Information
 /*
  * Copyright (c) 2015-2019 narayana games UG.  All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  * See LICENSE and NOTICE in the project root for license information.
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     public class NoteEvent {
 
         /// <summary>
-        ///     Start time of this note event, relative to the beginning time 
+        ///     Start time of this note event, relative to the beginning time
         ///     of the section/sequence.
         /// </summary>
         public double startTime = 0;
@@ -47,7 +47,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public int durationSixteenths = 0;
 
         /// <summary>
-        ///     Location; zero is center. This is based on dominantHand of sequence and 
+        ///     Location; zero is center. This is based on dominantHand of sequence and
         ///     may be mirrored on X depending on dominantHand of current player.
         /// </summary>
         public UnityEngine.Vector2 location = UnityEngine.Vector2.zero;

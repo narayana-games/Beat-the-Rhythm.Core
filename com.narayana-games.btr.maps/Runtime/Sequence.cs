@@ -1,10 +1,10 @@
 ﻿#region Copyright and License Information
 /*
  * Copyright (c) 2015-2019 narayana games UG.  All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  * See LICENSE and NOTICE in the project root for license information.
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,11 +22,11 @@ using NarayanaGames.BeatTheRhythm.Maps.Enums;
 namespace NarayanaGames.BeatTheRhythm.Maps {
 
     /// <summary>
-    ///     Represents a musical and gameplay sequence, as explained in Wikipedia: 
-    ///     In music, a sequence is the restatement of a motif or longer melodic 
+    ///     Represents a musical and gameplay sequence, as explained in Wikipedia:
+    ///     In music, a sequence is the restatement of a motif or longer melodic
     ///     (or harmonic) passage at a higher or lower pitch in the same voice.
     ///     See also: https://en.wikipedia.org/wiki/Sequence_(music)
-    ///     
+    ///
     ///     Obviously, in our context, it's really a section of actual gameplay.
     /// </summary>
     [Serializable]
@@ -44,7 +44,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public string name;
 
         /// <summary>
-        ///     Original tempo of this sequence in BPM. If different from the 
+        ///     Original tempo of this sequence in BPM. If different from the
         ///     sequence tempo, the timing of all events must be multiplied
         ///     accordingly.
         /// </summary>
