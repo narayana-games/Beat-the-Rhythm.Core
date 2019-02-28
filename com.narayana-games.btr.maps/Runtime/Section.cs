@@ -23,8 +23,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     ///     A section is a complete, but not independent, musical idea. Types
     ///     of sections include the introduction or intro, exposition,
     ///     development, recapitulation, verse, chorus or refrain, conclusion,
-    ///     coda or outro, fadeout, bridge or interlude. See also:
-    ///     https://en.wikipedia.org/wiki/Section_(music)
+    ///     coda or outro, fadeout, bridge or interlude. 
+    ///     See also: https://en.wikipedia.org/wiki/Section_(music)
+    ///     See also: https://en.wikipedia.org/wiki/Song_structure
     ///
     ///     Of course, drop and buildup are also important sections.
     /// </summary>
@@ -34,12 +35,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             Intro,
             Verse,
             Chorus,
+            Solo,
             Break,
             Bridge,
             BuildUp,
             Drop,
             FastDrop,
-            Outro
+            Outro,
+            FadeOut
         }
 
         /// <summary>The type of this section.</summary>
