@@ -57,7 +57,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 } else if (Input.GetKeyDown(keyStopPlaying)) {
                     controller.StopPlaying();
                 } else if (Input.GetKeyDown(keyStartAtBeginning)) {
-                    controller.StartSongFromBeginnig();
+                    controller.StartSongFromBeginning();
 
                 } else if (Input.GetKeyDown(keyRewindFast)) {
                     controller.Seek(-fastSeek);

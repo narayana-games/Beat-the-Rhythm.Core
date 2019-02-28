@@ -78,7 +78,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             SaveMap();
         }
 
-        public void StartSongFromBeginnig() {
+        public void StartSongFromBeginning() {
             TimePrecise = 0;
             if (!songAudio.isPlaying) {
                 StartPlaying();
