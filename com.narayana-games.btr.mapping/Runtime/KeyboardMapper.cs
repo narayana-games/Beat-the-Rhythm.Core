@@ -47,8 +47,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public string keyForwardFast = "l";
 
         public string keyNewSection = "a";
-        public string keyNewBar = "s";
-        public string keyNewBeat = "d";
+        public string keyNewPhrase = "s";
+        public string keyNewBar = "d";
+        public string keyNewBeat = "f";
 
         public void Update() {
             if (Input.anyKeyDown) {
@@ -70,6 +71,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
                 } else if (Input.GetKeyDown(keyNewSection)) {
                     controller.TappedNewSection();
+                } else if (Input.GetKeyDown(keyNewPhrase)) {
+                    controller.TappedNewPhrase();
                 } else if (Input.GetKeyDown(keyNewBar)) {
                     controller.TappedNewBar();
                 } else if (Input.GetKeyDown(keyNewBeat)) {

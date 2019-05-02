@@ -1,10 +1,10 @@
 ﻿#region Copyright and License Information
 /*
  * Copyright (c) 2015-2019 narayana games UG.  All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  * See LICENSE and NOTICE in the project root for license information.
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,21 +28,42 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
     public class MappingController : MonoBehaviour {
 
         public UnityEvent onSectionChanged = new UnityEvent();
+        public UnityEvent onPhraseChanged = new UnityEvent();
         public UnityEvent onCurrentBeatsPerBarChanged = new UnityEvent();
+        public UnityEvent onChanged = new UnityEvent();
 
         public AudioSource songAudio;
 
         public string currentMapPath = @"C:/GameDev/TestMap.json";
 
         private MapContainer currentMap;
+        public MapContainer CurrentMap { get { return currentMap; } }
 
         private Section currentSection;
+        public Section CurrentSection {
+            get { return currentSection; }
+        }
+        private Phrase currentPhrase;
+        public Phrase CurrentPhrase {
+            get { return currentPhrase; }
+        }
         private Track currentTrack;
         private Sequence currentSequence;
 
         private int sectionInSong = 0; // starts at 0
+        public int SectionInSong { get { return sectionInSong + 1; } }
+
+        private int phraseInSection = 1; // starts at 1
+        public int PhraseInSection { get { return phraseInSection; } }
+
         private int barInSection = 1; // starts at 1
+        public int BarInSection { get { return barInSection; } }
+
+        private int barInPhrase = 1; // starts at 1
+        public int BarInPhrase { get { return barInPhrase; } }
+
         private int beatInBar = 1; // starts at 1
+        public int BeatInBar { get { return beatInBar; } }
 
         private double secondsPerBar = 0F;
 
@@ -63,6 +84,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         public void SaveMap() {
+            if (currentMap == null) { Debug.LogError("Cannot save map before map was created!"); return; }
+
             int firstBar = 1;
             for (int i = 0; i < currentMap.sections.Count; i++) {
                 currentMap.sections[i].firstBar = firstBar;
@@ -113,6 +136,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         public void TappedNewSection() {
+            if (currentMap == null) { Debug.LogError("Cannot start section before map was created!"); return; }
+
             if (currentSection != null) {
                 currentSection.duration = TimePrecise - currentSection.startTime;
                 if (barInSection > 1) {
@@ -124,18 +149,50 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentSection.beatsPerBar = currentBeatsPerBar;
                 currentSection.CalculateBPM();
             }
-            currentSection = currentMap.FindSectionAt(TimePrecise + 0.5F);
+            currentSection = currentMap.FindSectionAt(TimePrecise + 0.1F);
             if (currentSection == null) {
                 currentSection = currentMap.AddSection(TimePrecise);
             }
-            CurrentSectionChanged();
+
+            currentPhrase = currentMap.FindPhraseAt(TimePrecise + 0.1F);
+
+            phraseInSection = 1;
             barInSection = 1;
             beatInBar = 1;
+            CurrentSectionChanged();
         }
 
         private void CurrentSectionChanged() {
             sectionInSong = currentMap.FindSectionIndex(currentSection);
             onSectionChanged.Invoke();
+            onChanged.Invoke();
+        }
+
+        public void TappedNewPhrase() {
+            if (currentMap == null) { Debug.LogError("Cannot start phrase before map was created!"); return; }
+
+            if (currentPhrase != null) {
+                currentPhrase.duration = TimePrecise - currentPhrase.startTime;
+                if (barInPhrase > 1) {
+                    currentPhrase.barsPerPhrase = barInPhrase;
+                    secondsPerBar = currentPhrase.duration / barInPhrase;
+                } else {
+                    currentPhrase.barsPerPhrase = Mathf.RoundToInt((float)(currentPhrase.duration / secondsPerBar));
+                }
+                currentPhrase.beatsPerBar = currentBeatsPerBar;
+                currentPhrase.CalculateBPM();
+            }
+
+            currentPhrase = currentMap.FindPhraseAt(TimePrecise + 0.1F);
+            if (currentPhrase == null) {
+                currentPhrase = currentSection.AddPhrase(TimePrecise);
+            }
+
+            barInSection = 1;
+            beatInBar = 1;
+
+            onPhraseChanged.Invoke();
+            onChanged.Invoke();
         }
 
         public void TappedNewBar() {
@@ -145,10 +202,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
             barInSection++;
             beatInBar = 1;
+            onChanged.Invoke();
         }
 
         public void TappedNewBeat() {
             beatInBar++;
+            onChanged.Invoke();
         }
 
 
@@ -168,7 +227,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 //    return 0.0;
                 //}
                 //return IsValid ? ((double)individualTracks[0].timeSamples) / ((double)individualTracks[0].clip.frequency) : 0.0;
-                return ((double)songAudio.timeSamples) / ((double)songAudio.clip.frequency); 
+                return ((double)songAudio.timeSamples) / ((double)songAudio.clip.frequency);
             }
             set {
                 //foreach (AudioSource audioSource in individualTracks) {
@@ -207,8 +266,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private double startTime = -1;
 
         /// <summary>
-        ///     Plays the clips of all AudioSources of this multitrack audio 
-        ///     source scheduled. See 
+        ///     Plays the clips of all AudioSources of this multitrack audio
+        ///     source scheduled. See
         ///     Unity Scripting API, AudioSource.PlayScheduled
         ///     for more info.
         /// </summary>

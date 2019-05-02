@@ -27,7 +27,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         /// <summary>
         ///     Start time of this note event, relative to the beginning time
-        ///     of the section/sequence.
+        ///     of the phrase/sequence.
         /// </summary>
         public double startTime = 0;
 
@@ -35,7 +35,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public double duration = 0;
 
         /// <summary>Alternative timing: Which bar in the section?</summary>
-        public int startBarInSection = 1;
+        public int startBarInPhrase = 1;
 
         /// <summary>Alternative timing: Which beat in the bar?</summary>
         public int startBeatInBar = 1;

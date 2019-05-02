@@ -20,7 +20,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
     /// <summary>
     ///     Represents a musical phrase or period, often a full section and in 
-    ///     some cases also just a one bar part with a specific tempo.
+    ///     some cases also just a one bar part with a specific tempo or meter
+    ///     signature.
     ///     
     ///     As explained in Wikipedia:
     /// 
@@ -53,7 +54,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public int firstBar = 0;
 
         /// <summary>The number of bars this phrase has, usually 4 or 8, but 1, 12, 16 or more is also possible.</summary>
-        public int barsPerSection = 0;
+        public int barsPerPhrase = 0;
 
         /// <summary>The numerator of the meter signature (N in N/4).</summary>
         public int beatsPerBar = 4;
@@ -65,7 +66,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public float bpm = 120;
 
         public void CalculateBPM() {
-            double timePerBeat = duration / (barsPerSection * beatsPerBar);
+            double timePerBeat = duration / (barsPerPhrase * beatsPerBar);
             bpm = (float) (60.0 / timePerBeat);
         }
     }

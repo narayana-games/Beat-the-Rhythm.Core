@@ -103,10 +103,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public List<Author> authors = new List<Author>();
         #endregion Ownership and Permissions
 
-        /// <summary>Used for Sequence Libraries, together with sequence; containerId is the ID of the sequence in this case.</summary>
-        public Section section;
+        /// <summary>Used for Phrase Libraries, together with sequence; containerId is the ID of the sequence in this case.</summary>
+        public Phrase phrase;
 
-        /// <summary>Used for Sequence Libraries, together with section; containerId is the ID of the sequence in this case.</summary>
+        /// <summary>Used for Phrase Libraries, together with phrase; containerId is the ID of the sequence in this case.</summary>
         public Sequence sequence;
 
 
@@ -129,6 +129,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             Section newSection = new Section();
             newSection.startTime = timeInSong;
             sections.Add(newSection);
+
+            newSection.AddPhrase(timeInSong);
+
             //sections.Sort();
             return newSection;
         }
@@ -143,9 +146,25 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         }
 
         public Section FindSectionAt(double timeInSong) {
+            Section section = null;
             for (int i = 0; i < sections.Count; i++) {
-                if (sections[i].startTime <= timeInSong && timeInSong <= sections[i].startTime + sections[i].duration) {
+                section = sections[i];
+                if (section.startTime <= timeInSong && timeInSong <= section.startTime + section.duration) {
                     return section;
+                }
+            }
+            return null;
+        }
+
+        public Phrase FindPhraseAt(double timeInSong) {
+            Section section = FindSectionAt(timeInSong);
+            Phrase phrase = null;
+            if (section != null) {
+                for (int i = 0; i < section.phrases.Count; i++) {
+                    phrase = section.phrases[i];
+                    if (phrase.startTime <= timeInSong && timeInSong <= phrase.startTime + phrase.duration) {
+                        return phrase;
+                    }
                 }
             }
             return null;
@@ -161,12 +180,16 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return tracks[trackId];
         }
 
-        public Sequence FindSequenceFor(Section section, Track track) {
+        public Sequence FindSequenceFor(Phrase phrase, Track track) {
+            int phraseId = 0;
             for (int i = 0; i < sections.Count; i++) {
-                if (sections[i] == section) {
-                    if (track.sequences.Count > i) {
-                        return track.sequences[i];
+                for (int x = 0; x < sections[i].phrases.Count; x++) {
+                    if (sections[i].phrases[x] == phrase) {
+                        if (track.sequences.Count > i) {
+                            return track.sequences[phraseId];
+                        }
                     }
+                    phraseId++;
                 }
             }
             return null;

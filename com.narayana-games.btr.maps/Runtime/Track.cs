@@ -42,10 +42,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
         public string name;
 
-        /// <summary>A list of sequence definition references.</summary>
-        public List<string> sequenceContainerIds = null;
+        /// <summary>A list of phrase definition references.</summary>
+        public List<string> phraseContainerIds = null;
 
-        /// <summary>List of actual sequences; must match up with MapContainer.sections!</summary>
+        /// <summary>List of actual sequences; must match up with MapContainer.sections.phrases!</summary>
         public List<Sequence> sequences = new List<Sequence>();
 
     }

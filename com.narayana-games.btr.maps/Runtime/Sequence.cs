@@ -40,7 +40,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>Dominant hand this sequence was designed for; locations will be mirrored when different from player</summary>
         public PickupType dominantHand = PickupType.Right;
 
-        /// <summary>The name of this sequence, usually the name of the section.</summary>
+        /// <summary>The name of this sequence, usually the name of the phrase.</summary>
         public string name;
 
         /// <summary>

@@ -15,6 +15,7 @@
 #endregion Copyright and License Information
 
 using System;
+using System.Collections.Generic;
 
 namespace NarayanaGames.BeatTheRhythm.Maps {
 
@@ -63,19 +64,33 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>The number of bars this section has, usually 4 or 8, but 16 or even 32 is also possible.</summary>
         public int barsPerSection = 0;
 
-        /// <summary>The numerator of the meter signature (N in N/4).</summary>
+        /// <summary>The dominant numerator of the meter signature (N in N/4). Phrases might override this.</summary>
         public int beatsPerBar = 4;
 
-        /// <summary>The denominator of the meter signature (N in 4/N).</summary>
+        /// <summary>The denominator of the meter signature (N in 4/N). Phrases might override this.</summary>
         public int beatUnit = 4;
 
-        /// <summary>Tempo of this section in BPM.</summary>
+        /// <summary>Dominant tempo of this section in BPM. Phrases might override this.</summary>
         public float bpm = 120;
+
+        /// <summary>One or more phrases that this section consists of.</summary>
+        public List<Phrase> phrases = new List<Phrase>();
 
         public void CalculateBPM() {
             double timePerBeat = duration / (barsPerSection * beatsPerBar);
             bpm = (float) (60.0 / timePerBeat);
         }
+
+        public Phrase AddPhrase(double timeInSong) {
+            Phrase newPhrase = new Phrase();
+            newPhrase.startTime = timeInSong;
+            phrases.Add(newPhrase);
+
+            //phrases.Sort();
+            return newPhrase;
+        }
+
+
     }
 
 }
