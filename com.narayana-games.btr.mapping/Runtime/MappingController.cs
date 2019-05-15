@@ -18,6 +18,7 @@ using UnityEngine;
 
 using NarayanaGames.BeatTheRhythm.Maps;
 using UnityEngine.Events;
+using NarayanaGames.Common.Audio;
 
 namespace NarayanaGames.BeatTheRhythm.Mapping {
 
@@ -32,21 +33,81 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public UnityEvent onCurrentBeatsPerBarChanged = new UnityEvent();
         public UnityEvent onChanged = new UnityEvent();
 
-        public AudioSource songAudio;
+        public MultiTrackAudioSource songAudio;
 
-        public string currentMapPath = @"C:/GameDev/TestMap.json";
+        public string currentMapPath = "C:/GameDev/TestMapA.json";
 
         private MapContainer currentMap;
         public MapContainer CurrentMap { get { return currentMap; } }
 
+        private bool isPaused = false;
+        public bool IsPaused {
+            get { return isPaused; }
+            set {
+                isPaused = value;
+                if (songAudio != null) {
+                    if (isPaused) {
+                        songAudio.Pause();
+                    } else {
+                        songAudio.UnPause();
+                    }
+                }
+            }
+        }
+
+        private bool isLooping = false;
+        public bool IsLooping {
+            get { return isLooping; }
+            set {
+                isLooping = value;
+                if (songAudio != null) {
+                    if (isLooping) {
+                        if (SelectedSection != null) {
+                            songAudio.CurrentLoopedSegment = SelectedSection;
+                        } else {
+                            songAudio.CurrentLoopedSegment = CurrentPhrase;
+                        }
+                        songAudio.LoopCurrentSegment = true;
+                    } else {
+                        songAudio.LoopCurrentSegment = false;
+                        songAudio.CurrentLoopedSegment = null;
+                    }
+                }
+            }
+        }
+
+        private SongSegment selectedSection = null;
+        public SongSegment SelectedSection {
+            get { return selectedSection; }
+            set {
+                if (selectedSection != value) {
+                    selectedSection = value;
+                }
+            }
+        }
+
         private Section currentSection;
         public Section CurrentSection {
+            set {
+                if (currentSection != null) {
+                    currentSection = value;
+                    CurrentSectionChanged();
+                }
+            }
             get { return currentSection; }
         }
+
         private Phrase currentPhrase;
         public Phrase CurrentPhrase {
+            set {
+                if (currentPhrase != null) {
+                    currentPhrase = value;
+                    CurrentPhraseChanged();
+                }
+            }
             get { return currentPhrase; }
         }
+
         private Track currentTrack;
         private Sequence currentSequence;
 
@@ -65,31 +126,61 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private int beatInBar = 1; // starts at 1
         public int BeatInBar { get { return beatInBar; } }
 
-        private double secondsPerBar = 0F;
+        private double secondsPerBar = 0;
+        private double currentBPM = 0;
 
-        private int currentBeatsPerBar = 0;
+        private int currentBeatsPerBar = 4;
+
+        public void Update() {
+            if (songAudio != null && IsPlaying) {
+                if (CurrentSection == null || songAudio.TimePrecise < CurrentSection.StartTime || songAudio.TimePrecise > CurrentSection.EndTime) {
+                    currentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
+                    CurrentSection = currentMap.songStructure.FindSectionAt(songAudio.TimePrecise);
+                } else if (CurrentPhrase == null || songAudio.TimePrecise < CurrentPhrase.StartTime || songAudio.TimePrecise > CurrentPhrase.EndTime) {
+                    CurrentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
+                }
+            }
+        }
 
         public void CreateMap() {
+            if (songAudio == null) {
+                Debug.LogError("Called CreateMap while songAudio was not yet assigned!");
+            }
             if (currentMap != null) {
                 Debug.LogWarning("Called CreateMap while currentMap was not null!");
             }
             currentMap = new MapContainer();
+            currentMap.songStructure.durationSeconds = songAudio.Length;
+            currentMap.songStructure.AddSection(0);
+            SetupNewMap();
         }
 
-        public void LoadMap(MapContainer loadedMap) {
-            if (currentMap != null) {
-                Debug.LogWarning("Called CreateMap while currentMap was not null!");
+        public void LoadMap() {
+            string json = null;
+            using (System.IO.StreamReader reader = System.IO.File.OpenText(currentMapPath)) {
+                json = reader.ReadToEnd();
             }
-            currentMap = loadedMap;
+            currentMap = JsonUtility.FromJson<MapContainer>(json);
+            SetupNewMap();
+        }
+
+        private void SetupNewMap() {
+            double time = 0;
+            if (songAudio != null) {
+                time = songAudio.TimePrecise;
+            }
+            currentSection = currentMap.songStructure.FindSectionAt(time);
+            currentPhrase = currentMap.songStructure.FindPhraseAt(time);
+            CurrentSectionChanged();
         }
 
         public void SaveMap() {
             if (currentMap == null) { Debug.LogError("Cannot save map before map was created!"); return; }
 
             int firstBar = 1;
-            for (int i = 0; i < currentMap.sections.Count; i++) {
-                currentMap.sections[i].firstBar = firstBar;
-                firstBar += currentMap.sections[i].barsPerSection;
+            for (int i = 0; i < currentMap.songStructure.sections.Count; i++) {
+                currentMap.songStructure.sections[i].startBar = firstBar;
+                firstBar += currentMap.songStructure.sections[i].durationBars;
             }
             string json = JsonUtility.ToJson(currentMap, true);
             using (System.IO.StreamWriter writer = System.IO.File.CreateText(currentMapPath)) {
@@ -97,102 +188,139 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
         }
 
-        public void OnApplicationQuit() {
-            SaveMap();
-        }
-
         public void StartSongFromBeginning() {
-            TimePrecise = 0;
-            if (!songAudio.isPlaying) {
-                StartPlaying();
+            songAudio.TimePrecise = 0;
+            if (!IsPlaying) {
                 if (currentMap == null) {
                     CreateMap();
                 }
-                TappedNewSection();
+                StartPlaying();
             }
         }
 
         public void Seek(double offset) {
-            TimePrecise = Mathf.Clamp((float) (TimePrecise + offset), 0, songAudio.clip.length - 1F);
-            // TODO: Check where we are, set things up appropriately
-            // Usually, this will be used for fixing section beginning / end, so that should be enough
+            songAudio.TimePrecise = Mathf.Clamp((float) (songAudio.TimePrecise + offset), 0, songAudio.Length - 1F);
         }
 
-        public void StartPlaying() {
-            songAudio.Play();
+        public void StartPlaying(SongSegment segment) {
+            StartPlaying(segment.StartTime);
+            if (segment is Section) {
+                currentSection = (Section)segment;
+                currentPhrase = CurrentSection.phrases[0];
+                CurrentSectionChanged();
+            } else if (segment is Phrase) {
+                currentSection = currentMap.songStructure.FindSectionAt(segment.StartTime);
+                CurrentPhrase = (Phrase)segment;
+            }
+            if (IsLooping) {
+                IsLooping = true;
+            }
         }
 
         public void StartPlaying(double startTime) {
-            TimePrecise = startTime;
-            songAudio.Play();
+            songAudio.TimePrecise = startTime;
+            StartPlaying();
         }
 
-        public void StartPlaying(Section section) {
-            StartPlaying(section.startTime);
+        public void StartPlaying() {
+            if (!IsPlaying && !IsPaused) {
+                songAudio.Play();
+            }
         }
 
         public void StopPlaying() {
+            IsPaused = false;
             songAudio.Stop();
+        }
+
+        public bool IsPlaying {
+            get { return songAudio != null && songAudio.IsPlaying; }
+        }
+
+        public void DeleteSegment(SongSegment songSegment) {
+            if (currentMap.songStructure.DeleteSegment(songSegment)) {
+                selectedSection = null;
+                currentSection = null;
+                currentPhrase = null;
+                Update();
+                CurrentSectionChanged();
+            }
         }
 
         public void TappedNewSection() {
             if (currentMap == null) { Debug.LogError("Cannot start section before map was created!"); return; }
 
-            if (currentSection != null) {
-                currentSection.duration = TimePrecise - currentSection.startTime;
-                if (barInSection > 1) {
-                    currentSection.barsPerSection = barInSection;
-                    secondsPerBar = currentSection.duration / barInSection;
-                } else {
-                    currentSection.barsPerSection = Mathf.RoundToInt((float) (currentSection.duration / secondsPerBar));
-                }
-                currentSection.beatsPerBar = currentBeatsPerBar;
-                currentSection.CalculateBPM();
-            }
-            currentSection = currentMap.FindSectionAt(TimePrecise + 0.1F);
-            if (currentSection == null) {
-                currentSection = currentMap.AddSection(TimePrecise);
+            CloseCurrentSegment(currentSection, barInSection);
+            CloseCurrentSegment(currentPhrase, barInPhrase);
+
+            currentSection = currentMap.songStructure.AddSection(songAudio.TimePrecise);
+            currentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
+
+            if (currentBPM > 1) {
+                currentSection.bpm = currentBPM;
+                currentPhrase.bpm = currentBPM;
             }
 
-            currentPhrase = currentMap.FindPhraseAt(TimePrecise + 0.1F);
-
-            phraseInSection = 1;
-            barInSection = 1;
-            beatInBar = 1;
             CurrentSectionChanged();
         }
 
         private void CurrentSectionChanged() {
-            sectionInSong = currentMap.FindSectionIndex(currentSection);
+            sectionInSong = currentMap.songStructure.FindSectionIndex(currentSection);
+
+            phraseInSection = 1;
+            barInSection = 1;
+            barInPhrase = 1;
+            beatInBar = 1;
+
             onSectionChanged.Invoke();
-            onChanged.Invoke();
         }
 
         public void TappedNewPhrase() {
             if (currentMap == null) { Debug.LogError("Cannot start phrase before map was created!"); return; }
 
-            if (currentPhrase != null) {
-                currentPhrase.duration = TimePrecise - currentPhrase.startTime;
-                if (barInPhrase > 1) {
-                    currentPhrase.barsPerPhrase = barInPhrase;
-                    secondsPerBar = currentPhrase.duration / barInPhrase;
+            CloseCurrentSegment(currentPhrase, barInPhrase);
+
+            currentPhrase = currentMap.songStructure.AddPhrase(currentSection, songAudio.TimePrecise);
+
+            if (currentBPM > 1) {
+                currentPhrase.bpm = currentBPM;
+            }
+
+            CurrentPhraseChanged();
+        }
+
+        private void CloseCurrentSegment(SongSegment segment, int barCount) {
+            string whatsTapped = "TappendNewSection";
+            if (segment is Phrase) {
+                whatsTapped = "TappendNewPhrase";
+            }
+            if (segment != null) {
+                segment.DurationSeconds = songAudio.TimePrecise - segment.StartTime;
+                if (barCount > 1) {
+                    segment.durationBars = barCount;
+                    secondsPerBar = segment.DurationSeconds / barCount;
+                    //Debug.LogFormat("{2} (barCount > 1) => durationBars = {0}, secondsPerBar = {1}", barCount, secondsPerBar, whatsTapped);
                 } else {
-                    currentPhrase.barsPerPhrase = Mathf.RoundToInt((float)(currentPhrase.duration / secondsPerBar));
+                    segment.durationBars = Mathf.RoundToInt((float)(segment.DurationSeconds / secondsPerBar));
+                    if (segment.durationBars > 1) {
+                        //Debug.LogFormat("{2} (barCount == 1, secondsPerBar = {1}) => durationBars = {0}", barCount, secondsPerBar, whatsTapped);
+                    } else {
+                        segment.durationBars = 1;
+                        secondsPerBar = segment.DurationSeconds;
+                        Debug.LogFormat("{2} (barCount > 1 but segment too short for one bar) => durationBars = {0}, secondsPerBar = {1}", barCount, secondsPerBar, whatsTapped);
+                    }
                 }
-                currentPhrase.beatsPerBar = currentBeatsPerBar;
-                currentPhrase.CalculateBPM();
+                segment.beatsPerBar = currentBeatsPerBar;
+                segment.CalculateBPM();
+                currentBPM = segment.bpm;
             }
+        }
 
-            currentPhrase = currentMap.FindPhraseAt(TimePrecise + 0.1F);
-            if (currentPhrase == null) {
-                currentPhrase = currentSection.AddPhrase(TimePrecise);
-            }
-
-            barInSection = 1;
+        private void CurrentPhraseChanged() {
+            barInPhrase = 1;
             beatInBar = 1;
 
             onPhraseChanged.Invoke();
-            onChanged.Invoke();
         }
 
         public void TappedNewBar() {
@@ -201,6 +329,17 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 onCurrentBeatsPerBarChanged.Invoke();
             }
             barInSection++;
+            if (CurrentSection != null) {
+                CurrentSection.durationBars = barInSection;
+                CurrentSection.CalculateBPM(songAudio.TimePrecise - CurrentSection.StartTime, barInSection - 1);
+                currentBPM = CurrentSection.bpm;
+            }
+
+            barInPhrase++;
+            if (CurrentPhrase != null) {
+                CurrentPhrase.durationBars = barInPhrase;
+                CurrentPhrase.CalculateBPM(songAudio.TimePrecise - CurrentPhrase.StartTime, barInPhrase - 1);
+            }
             beatInBar = 1;
             onChanged.Invoke();
         }
@@ -211,70 +350,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
 
-        #region Taken from Holodance.MultiTrackAudioSource
-
         // for looping, see: https://docs.unity3d.com/ScriptReference/AudioSource.PlayScheduled.html
 
-        /// <summary>
-        ///     Get or set the precise time as double value representing seconds.
-        /// </summary>
-        public double TimePrecise {
-            get {
-                if (CheckStartTime()) {
-                    return (float)PreRollTime;
-                }
-                //if (individualTracks == null || individualTracks.Count == 0 || individualTracks[0].clip == null) {
-                //    return 0.0;
-                //}
-                //return IsValid ? ((double)individualTracks[0].timeSamples) / ((double)individualTracks[0].clip.frequency) : 0.0;
-                return ((double)songAudio.timeSamples) / ((double)songAudio.clip.frequency);
-            }
-            set {
-                //foreach (AudioSource audioSource in individualTracks) {
-                //    audioSource.timeSamples = (int)(value * ((double)individualTracks[0].clip.frequency));
-                //}
-                songAudio.timeSamples = (int)(value * ((double)songAudio.clip.frequency));
-            }
-        }
-
-        private bool CheckStartTime() {
-            if (startTime > 0) {
-                if (AudioSettings.dspTime > startTime) {
-                    startTime = -1;
-                    return false;
-                } else {
-                    return true;
-                }
-            } else {
-                return false;
-            }
-        }
-
-        private double PreRollTime {
-            get { return AudioSettings.dspTime - startTime; }
-        }
-
-        /// <summary>
-        ///     Similar to PlayDelayed but uses PlayScheduled to make sure all
-        ///     clips are started exactly at the same sample.
-        /// </summary>
-        /// <param name="delaySeconds"></param>
-        public void PlayAfterPreciseDelay(double delaySeconds) {
-            PlayScheduled(AudioSettings.dspTime + delaySeconds);
-        }
-
-        private double startTime = -1;
-
-        /// <summary>
-        ///     Plays the clips of all AudioSources of this multitrack audio
-        ///     source scheduled. See
-        ///     Unity Scripting API, AudioSource.PlayScheduled
-        ///     for more info.
-        /// </summary>
-        public void PlayScheduled(double time) {
-            startTime = time;
-            songAudio.PlayScheduled(time);
-        }
-        #endregion Taken from Holodance.MultiTrackAudioSource
     }
 }

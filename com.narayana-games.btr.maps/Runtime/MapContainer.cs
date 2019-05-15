@@ -21,12 +21,13 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
     /// <summary>
     ///     A container to store and transmit beatmap information. For storage
-    ///     and transmission irrelevant fields must/should be set to null.
+    ///     and transmission irrelevant fields must be set to null.
     ///     MapContainers are general purpose and can contain only the section
-    ///     layout of a song, the actual gameplay of a full song, a snippet
-    ///     for a general purpose section with a given tempo and applicable
-    ///     tempo range, as well as meta-information that can be used e.g.
-    ///     for effects and lightshows.
+    ///     layout of a song, the actual gameplay of a full song, the whole
+    ///     arrangement for a multiplayer choreography, a snippet for a 
+    ///     general purpose section with a given tempo and applicable tempo 
+    ///     range, as well as meta-information that can be used e.g. for 
+    ///     effects and lightshows.
     /// </summary>
     [Serializable]
     public class MapContainer {
@@ -51,124 +52,30 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// </summary>
         public string containerId = null;
 
-        #region Recording Meta Data
         /// <summary>
-        ///     The unique ID of the recording this refers to. A "recording"
-        ///     can be any digital form of a specific song, an audio file,
-        ///     YouTube video, that can use the same beatmap with an optional
-        ///     offset to handle different starting times. Recordings have the
-        ///     same artist, same or similar title, and same duration +/- 5
-        ///     seconds. This can be null, if it is a general purpose snippet.
+        ///     Owner, permissions and whether the item has been locked.
         /// </summary>
-        public string audioRecordingId = null;
-
-        /// <summary>Name of the artist; stored redundantly with AudioRecording.</summary>
-        public string artist = null;
-
-        /// <summary>Title of the song; stored redundantly with AudioRecording.</summary>
-        public string title = null;
-
-        /// <summary>Title of the song; stored redundantly with AudioRecording.</summary>
-        public float durationSeconds = 0;
+        public Access access = new Access();
 
         /// <summary>
-        ///     If the song does not have tempo changes, this is simply the
-        ///     tempo. Otherwise, this should be the "dominant" tempo, in other
-        ///     words, how fast or slow the song as a whole feels, leaning towards
-        ///     the fastest sections of the song, unless those are only very short.
+        ///     External Song Structure; used to save without redudancy.
         /// </summary>
-        public float dominantBPM = 120;
-        #endregion Recording Meta Data
-
-        #region Ownership and Permissions
-        /// <summary>
-        ///     Owner of this specific instance. This is the person that has
-        ///     created this version of the map. Ownership will only be
-        ///     officially recognized upon map ranking when the author has
-        ///     contributed at least 50% of the content of this map.
-        /// </summary>
-        public Author owner = null;
-
-        /// <summary>Does the owner allow re-using the contents of this container?</summary>
-        public bool ownerAllowsReuse = true;
-
-        /// <summary>Does the owner allow modifying the contents of this container (only applies to new/copied instances)?</summary>
-        public bool ownerAllowsModding = true;
+        public string songStructureId = null;
 
         /// <summary>
-        ///     A list of all authors that have contributed to any part of
-        ///     this map. This is included here so we only need the player ids
-        ///     in all nested levels.
+        ///     Internal Song Structure; used to transmit data conveniently.
+        ///     This should be set to null when storing in a database.
         /// </summary>
-        public List<Author> authors = new List<Author>();
-        #endregion Ownership and Permissions
+        public SongStructure songStructure = new SongStructure();
 
-        /// <summary>Used for Phrase Libraries, together with sequence; containerId is the ID of the sequence in this case.</summary>
-        public Phrase phrase;
-
-        /// <summary>Used for Phrase Libraries, together with phrase; containerId is the ID of the sequence in this case.</summary>
-        public Sequence sequence;
-
-
-        /// <summary>Sections definition reference.</summary>
-        public string sectionsContainerId = null;
-
-        /// <summary>List of sections of this recording.</summary>
-        public List<Section> sections = new List<Section>();
-
-
-        /// <summary>A list of track definition references.</summary>
+        /// <summary>
+        ///     A list of track definition references.
+        /// </summary>
         public List<string> trackContainerIds = null;
 
         /// <summary>List of actual tracks.</summary>
         public List<Track> tracks = new List<Track>();
 
-
-        public Section AddSection(double timeInSong) {
-            // TODO: Do some sanity checks to make this safe
-            Section newSection = new Section();
-            newSection.startTime = timeInSong;
-            sections.Add(newSection);
-
-            newSection.AddPhrase(timeInSong);
-
-            //sections.Sort();
-            return newSection;
-        }
-
-        public int FindSectionIndex(Section section) {
-            for (int i = 0; i < sections.Count; i++) {
-                if (sections[i] == section) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        public Section FindSectionAt(double timeInSong) {
-            Section section = null;
-            for (int i = 0; i < sections.Count; i++) {
-                section = sections[i];
-                if (section.startTime <= timeInSong && timeInSong <= section.startTime + section.duration) {
-                    return section;
-                }
-            }
-            return null;
-        }
-
-        public Phrase FindPhraseAt(double timeInSong) {
-            Section section = FindSectionAt(timeInSong);
-            Phrase phrase = null;
-            if (section != null) {
-                for (int i = 0; i < section.phrases.Count; i++) {
-                    phrase = section.phrases[i];
-                    if (phrase.startTime <= timeInSong && timeInSong <= phrase.startTime + phrase.duration) {
-                        return phrase;
-                    }
-                }
-            }
-            return null;
-        }
 
         public Track AddTrack() {
             Track newTrack = new Track();
@@ -182,9 +89,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         public Sequence FindSequenceFor(Phrase phrase, Track track) {
             int phraseId = 0;
-            for (int i = 0; i < sections.Count; i++) {
-                for (int x = 0; x < sections[i].phrases.Count; x++) {
-                    if (sections[i].phrases[x] == phrase) {
+            for (int i = 0; i < songStructure.sections.Count; i++) {
+                for (int x = 0; x < songStructure.sections[i].phrases.Count; x++) {
+                    if (songStructure.sections[i].phrases[x] == phrase) {
                         if (track.sequences.Count > i) {
                             return track.sequences[phraseId];
                         }

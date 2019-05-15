@@ -21,12 +21,17 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     /// <summary>
     ///     Represents a musical phrase or period, often a full section and in 
     ///     some cases also just a one bar part with a specific tempo or meter
-    ///     signature.
+    ///     signature. We have phrases as an optional way to subdivide sections,
+    ///     so usually, sections and phrases are the same. Only when necessary,
+    ///     e.g. because there are tempo changes within a section (e.g. a 
+    ///     build-up that speeds up), it is recommended to subdivide a section 
+    ///     into multiple phrases. Another reason to create phrases is when 
+    ///     there is one particularly difficult phrase within a longer section).
     ///     
     ///     As explained in Wikipedia:
     /// 
     ///     In music theory, a phrase (Greek: φράση) is a unit of musical meter 
-    ///     that has a complete musical sense of its own,[5] built from figures, 
+    ///     that has a complete musical sense of its own, built from figures, 
     ///     motifs, and cells, and combining to form melodies, periods and larger 
     ///     sections.
     /// 
@@ -40,34 +45,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     ///     See also: https://en.wikipedia.org/wiki/Period_(music)
     /// </summary>
     [Serializable]
-    public class Phrase {
-        /// <summary>The name of this section, usually either the same as type, or type plus a number.</summary>
-        public string name;
-
-        /// <summary>The precise start time of this phrase.</summary>
-        public double startTime = 0;
-
-        /// <summary>The precise duration of this phrase.</summary>
-        public double duration = 0;
-
-        /// <summary>The number of the first bar of this phrase, in the song, starting at 1.</summary>
-        public int firstBar = 0;
-
-        /// <summary>The number of bars this phrase has, usually 4 or 8, but 1, 12, 16 or more is also possible.</summary>
-        public int barsPerPhrase = 0;
-
-        /// <summary>The numerator of the meter signature (N in N/4).</summary>
-        public int beatsPerBar = 4;
-
-        /// <summary>The denominator of the meter signature (N in 4/N).</summary>
-        public int beatUnit = 4;
-
-        /// <summary>Tempo of this phrase in BPM.</summary>
-        public float bpm = 120;
-
-        public void CalculateBPM() {
-            double timePerBeat = duration / (barsPerPhrase * beatsPerBar);
-            bpm = (float) (60.0 / timePerBeat);
+    public class Phrase : SongSegment {
+        public Phrase() {
+            name = "Phrase";
         }
     }
 

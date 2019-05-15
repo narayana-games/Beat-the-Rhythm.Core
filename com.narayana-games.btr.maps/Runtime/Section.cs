@@ -31,8 +31,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     ///     Of course, drop and buildup are also important sections.
     /// </summary>
     [Serializable]
-    public class Section {
+    public class Section : SongSegment {
         public enum Type : int {
+            Silence,
             Intro,
             Verse,
             Chorus,
@@ -47,49 +48,56 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         }
 
         /// <summary>The type of this section.</summary>
-        public Type type;
-
-        /// <summary>The name of this section, usually either the same as type, or type plus a number.</summary>
-        public string name;
-
-        /// <summary>The precise start time of this section.</summary>
-        public double startTime = 0;
-
-        /// <summary>The precise duration of this section.</summary>
-        public double duration = 0;
-
-        /// <summary>The number of the first bar of this section, in the song, starting at 1.</summary>
-        public int firstBar = 0;
-
-        /// <summary>The number of bars this section has, usually 4 or 8, but 16 or even 32 is also possible.</summary>
-        public int barsPerSection = 0;
-
-        /// <summary>The dominant numerator of the meter signature (N in N/4). Phrases might override this.</summary>
-        public int beatsPerBar = 4;
-
-        /// <summary>The denominator of the meter signature (N in 4/N). Phrases might override this.</summary>
-        public int beatUnit = 4;
-
-        /// <summary>Dominant tempo of this section in BPM. Phrases might override this.</summary>
-        public float bpm = 120;
+        public Type type = Type.Intro;
 
         /// <summary>One or more phrases that this section consists of.</summary>
         public List<Phrase> phrases = new List<Phrase>();
 
-        public void CalculateBPM() {
-            double timePerBeat = duration / (barsPerSection * beatsPerBar);
-            bpm = (float) (60.0 / timePerBeat);
+        public Section() {
+            name = "Section";
+            phrases.Add(new Phrase());
         }
 
-        public Phrase AddPhrase(double timeInSong) {
-            Phrase newPhrase = new Phrase();
-            newPhrase.startTime = timeInSong;
-            phrases.Add(newPhrase);
-
-            //phrases.Sort();
-            return newPhrase;
+        public override double StartTime {
+            get {
+                if (phrases.Count > 0) {
+                    return phrases[0].StartTime;
+                }
+                return startTime;
+            }
+            set {
+                startTime = value;
+                if (phrases.Count > 0) {
+                    phrases[0].SetStartTimeKeepEndTime(startTime);
+                }
+            }
         }
 
+        public override double DurationSeconds {
+            get {
+                return EndTime - StartTime;
+                //return durationSeconds;
+            }
+            set {
+                durationSeconds = value;
+                if (phrases.Count == 1) {
+                    phrases[0].DurationSeconds = value;
+                } else if (phrases.Count > 0) {
+                    Phrase lastPhrase = phrases[phrases.Count - 1];
+                    lastPhrase.SetEndTimeKeepStartTime(EndTime);
+                }
+            }
+        }
+
+        public override double EndTime {
+            get {
+                if (phrases.Count > 0) {
+                    Phrase lastPhrase = phrases[phrases.Count - 1];
+                    return lastPhrase.EndTime;
+                }
+                return base.EndTime;
+            }
+        }
 
     }
 

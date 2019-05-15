@@ -27,7 +27,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     public class Author {
         /// <summary>
         ///     Reference to Player.uniquePlayerId, or if the original map was
-        ///     imported (e.g. from osu!), and external player id with a prefix.
+        ///     imported (e.g. from osu!), an external player id with a prefix.
         /// </summary>
         public string uniquePlayerId;
 
