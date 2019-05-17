@@ -9,6 +9,12 @@ important benefits during both mapping and playing.
 However, for these benefits to become available, a little bit of musical understanding is 
 necessary:
 
+### Bars
+
+A bar is not a place to get drunk. A bar is the smallest musical unit in terms of structure.
+Usually, each bar in a song has the same duration, and typically, one bar has four beats
+or quarter notes. See the section *Time Signatures* below for exceptions to that.
+
 ### Sections
 
 Each song consists of several **sections**. In popular music, typical sections are the verses,
@@ -57,6 +63,8 @@ beat is a quarter note in a bar with four quarter notes. That means that 120 BPM
 has one beat every half second (60 seconds divided into 120 beats), and one bar 
 lasts two seconds (four beats at half a second each is two seconds). Also, in
 a lot of popular music, the tempo does not change throughout the song.
+While BPM can be based on any note length, for the sake of simplicity and 
+consistency, we define BPM always as quarter note beats per minute.
 
 There are, however, exceptions: Using dubstep as a convenient example, drops will 
 often be halftime or double time, depending on your perspective of the actual tempo 
@@ -71,6 +79,19 @@ Both, sections and phrases can define a tempo, and our system currently only sup
 setting a new tempo at the beginning of a new bar. You can change the tempo within
 a single section by adding phrases each time the tempo changes.
 
+Our system supports an unusual range of tempi, mostly for experimental reasons: 
+The lowest tempo where rhythm is still perceived as rhythm 
+[is roughly 33 BPM](https://boingboing.net/2018/01/25/what-is-the-slowest-music-huma.html),
+however, the UI in Beatographer lets you go as low as 4 BPM. You probably won't find
+any song that is actually that slow
+([10-30 BPM, however, does exist](https://www.quora.com/Which-genre-of-music-has-the-slowest-BPM#MoreAnswers))
+but below a certain threshold, in Holodance and Beat the Rhythm, something about time changes.
+
+Tempi up to 240 BPM still give you reasonable gameplay, and in most genres, you won't find
+songs going beyond 180 BPM. But ... there are experimental genres like Speedcore or Extratone
+that start at 300 BPM and go up to whatever the next person will try. Here are some examples:
+[What is the Fastest Genre of Electronic Dance Music?](http://www.edmnerd.com/what-is-the-fastest-genre-of-electronic-dance-music/).
+
 ### Time Signatures
 
 As said before: Almost all songs are just 4/4 - one bar consists of four quarter
@@ -79,6 +100,12 @@ might even change the time signature. This is handled just like tempo, so any
 new phrase can also define a new time signature.
 
 ### Recommended Reading
+
+A quick introduction to bars, beats and time signatures:
+[Beat, Bar, Time Signatures and Tempo](https://ainolnaim.wordpress.com/2b-tempo-beats-and-ties/).
+The [next chapter](https://ainolnaim.wordpress.com/rhythm-types-and-constructions/) of that
+music theory e-book is still incomplete but gives a really quick intro to the basics of
+rhythm nevertheless.
 
 There is a really good tutorial that outlines some of the basics of songwriting;
 it's third part is about deconstructing the form of a song:
@@ -91,4 +118,14 @@ The other three parts of that workshop are examples.
 
 If you're looking for more examples, you'll find the song structures of several songs visualized in: 
 [http://www.ethanhein.com/wp/2012/song-structures/](http://www.ethanhein.com/wp/2012/song-structures/).
+
+If you want to learn about tempo ranges: 
+[List of average genre tempo (BPM) levels?](https://music.stackexchange.com/questions/4525/list-of-average-genre-tempo-bpm-levels),
+the first comment to the original question also links to the [BPM Database](https://www.bpmdatabase.com/).
+
+A nice little intro to time signatures:
+[Understanding Time Signatures and Meters: A Musical Guide](https://www.libertyparkmusic.com/musical-time-signatures/)
+
+A good explanation of the most common time signatures is in the first answer to:
+[Which are the ~15 most common time signatures?](https://music.stackexchange.com/questions/14415/which-are-the-15-most-common-time-signatures)
 
