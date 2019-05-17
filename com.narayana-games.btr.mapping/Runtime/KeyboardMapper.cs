@@ -52,6 +52,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public string keyNewBeat = "f";
 
         public void Update() {
+            if (controller.IsPaused) {
+                // ignore any keyboard input when paused
+                return;
+            }
             if (Input.anyKeyDown) {
                 if (Input.GetKeyDown(keyStartPlaying)) {
                     controller.StartPlaying();
