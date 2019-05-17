@@ -71,3 +71,18 @@ As said before: Almost all songs are just 4/4 - one bar consists of four quarter
 notes. But there are exceptions, some songs, e.g. waltz are in 3/4, and some songs
 might even change the time signature. This is handled just like tempo, so any
 new phrase can also define a new time signature.
+
+### Recommended Reading
+
+There is a really good tutorial that outlines some of the basics of songwriting;
+it's third part is about deconstructing the form of a song:
+[Beginner’s Guide To Songwriting – Part 3](https://music.tutsplus.com/tutorials/beginners-guide-to-songwriting-part-3--audio-4107).
+
+More details on the different types of sections used in traditional pop music and
+modern EDM can be found in the first part of:
+[Song Structure workshop](http://dsmootz.blogspot.com/p/song-structure-workshop.html).
+The other three parts of that workshop are examples.
+
+If you're looking for more examples, you'll find the song structures of several songs visualized in: 
+[http://www.ethanhein.com/wp/2012/song-structures/](http://www.ethanhein.com/wp/2012/song-structures/).
+
