@@ -190,7 +190,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             T segment = null;
             for (int i = 0; i < segments.Count; i++) {
                 segment = segments[i];
-                if (segment.StartTime <= timeInSong && timeInSong < segment.EndTime) {
+                double minEndTime = durationSeconds;
+                if (segments.Count > i + 1) {
+                    minEndTime = segments[i + 1].StartTime;
+                }
+                if (segment.StartTime <= timeInSong && (timeInSong < Math.Max(segment.EndTime, minEndTime))) {
                     return segment;
                 }
             }
@@ -200,7 +204,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         public T FindSegmentAfter<T>(List<T> segments, double timeInSong) where T : SongSegment {
             for (int i = 0; i < segments.Count; i++) {
-                if (segments[i].StartTime <= timeInSong && timeInSong < segments[i].EndTime) {
+                double minEndTime = durationSeconds;
+                if (segments.Count > i + 1) {
+                    minEndTime = segments[i + 1].StartTime;
+                }
+                if (segments[i].StartTime <= timeInSong && timeInSong < Math.Max(segments[i].EndTime, minEndTime)) {
                     if (segments.Count > i + 1) {
                         return segments[i + 1];
                     }

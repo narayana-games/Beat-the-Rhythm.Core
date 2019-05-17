@@ -95,10 +95,21 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         }
 
         public void CalculateBPM(double seconds, double bars) {
-            double timePerBeat = seconds / (bars * beatsPerBar); // TODO: Also use beatUnit!
+            double timePerBeat = seconds / (bars * beatsPerBar * 4.0 / beatUnit);
             bpm = (60.0 / timePerBeat);
         }
 
+        public double TimePerBar {
+            get {
+                return TimePerBeat * beatsPerBar;
+            }
+        }
+
+        public double TimePerBeat {
+            get {
+                return 60.0 / bpm * 4.0 / beatUnit;
+            }
+        }
 
         //public int CalculateBarCountFromBPM() {
 

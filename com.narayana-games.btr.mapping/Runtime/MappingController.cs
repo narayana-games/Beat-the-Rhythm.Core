@@ -28,6 +28,17 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
     /// </summary>
     public class MappingController : MonoBehaviour {
 
+        [Header("Audio")]
+        public MultiTrackAudioSource songAudio;
+        public AudioSource previewPlayer;
+        public AudioSource loopTick;
+        public AudioSource metronomeOne;
+        public AudioSource metronomeTwoThreeFour;
+
+        [Header("Testing")]
+        public string currentMapPath = "C:/GameDev/TestMapA.json";
+
+        [Header("Events")]
         public UnityEvent onSectionChanged = new UnityEvent();
         public UnityEvent onPhraseChanged = new UnityEvent();
         public UnityEvent onCurrentBeatsPerBarChanged = new UnityEvent();
@@ -35,9 +46,6 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         public UnityEvent onPlayStateChanged = new UnityEvent();
 
-        public MultiTrackAudioSource songAudio;
-
-        public string currentMapPath = "C:/GameDev/TestMapA.json";
 
         private MapContainer currentMap;
         public MapContainer CurrentMap { get { return currentMap; } }
@@ -83,6 +91,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 }
             }
         }
+
+        public bool PlayLoopTick { get; set; }
+        public bool PlayMetronome { get; set; }
 
         private SongSegment selectedSection = null;
         public SongSegment SelectedSection {
@@ -140,6 +151,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private int currentBeatsPerBar = 4;
 
         public void Update() {
+            CheckSegmentChanged();
+            CheckLoopTick();
+            CheckMetronome();
+        }
+
+        private void CheckSegmentChanged() {
             if (songAudio != null && IsPlaying) {
                 if (CurrentSection == null || songAudio.TimePrecise < CurrentSection.StartTime || songAudio.TimePrecise > CurrentSection.EndTime) {
                     currentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
@@ -147,6 +164,102 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 } else if (CurrentPhrase == null || songAudio.TimePrecise < CurrentPhrase.StartTime || songAudio.TimePrecise > CurrentPhrase.EndTime) {
                     CurrentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
                 }
+            }
+        }
+
+        private bool isNextLoopTickScheduled = false;
+        private double nextLoopTickStartTime = 0;
+
+        private void CheckLoopTick() {
+            if (PlayLoopTick && IsPlaying) {
+                double time = AudioSettings.dspTime;
+                if (!isNextLoopTickScheduled && (CurrentPhrase.EndTime - songAudio.TimePrecise) < 0.1f) {
+                    isNextLoopTickScheduled = true;
+                    nextLoopTickStartTime = time + (CurrentPhrase.EndTime - songAudio.TimePrecise);
+                    loopTick.PlayScheduled(nextLoopTickStartTime);
+                }
+                if (isNextLoopTickScheduled && time > nextLoopTickStartTime) {
+                    isNextLoopTickScheduled = false;
+                }
+            } else {
+                isNextLoopTickScheduled = false;
+                loopTick.Stop();
+                nextLoopTickStartTime = double.MaxValue;
+            }
+        }
+
+        private int metronomeBar = 0;
+        private int metronomeBeat = 0;
+
+        private bool isNextMetronomeTickScheduled = false;
+        private bool isNextMetronomeTickDominant = false;
+        private double nextMetronomeTickStartTime = 0;
+        private double lastTimeInPhase = 0;
+
+        private void CheckMetronome() {
+            if (PlayMetronome && IsPlaying) {
+                double time = AudioSettings.dspTime;
+                double timeInPhrase = songAudio.TimePrecise - CurrentPhrase.StartTime;
+
+                if (lastTimeInPhase > timeInPhrase) {
+                    metronomeBar = 0;
+                    metronomeBeat = 0;
+                    isNextMetronomeTickScheduled = false;
+                    metronomeOne.Stop();
+                    metronomeTwoThreeFour.Stop();
+                }
+                lastTimeInPhase = timeInPhrase;
+
+                double nextBar = (metronomeBar + 1) * CurrentPhrase.TimePerBar;
+                double nextBeat = metronomeBar * CurrentPhrase.TimePerBar + (metronomeBeat + 1) * CurrentPhrase.TimePerBeat;
+
+                double scheduledTime = 0;
+
+                if (!isNextMetronomeTickScheduled) {
+                    if (timeInPhrase + 0.1F >= nextBeat) {
+                        metronomeBeat++;
+                        scheduledTime = nextBeat - timeInPhrase;
+                        if (scheduledTime > 0) {
+                            isNextMetronomeTickDominant = false;
+                            //if (metronomeBeat < CurrentPhrase.beatsPerBar) {
+                            //    isNextMetronomeTickScheduled = true;
+                            //    nextMetronomeTickStartTime = time + scheduledTime;
+                            //    metronomeTwoThreeFour.PlayScheduled(nextMetronomeTickStartTime);
+                            //    Debug.LogFormat("Will play Beat at: {0}, in {1} (time per bar: {2}, time per beat: {3})",
+                            //        nextMetronomeTickStartTime, scheduledTime, CurrentPhrase.TimePerBar, CurrentPhrase.TimePerBeat);
+                            //}
+                        }
+                    }
+                    if (timeInPhrase + 0.1F >= nextBar) {
+                        metronomeBar++;
+                        metronomeBeat = 0;
+                        scheduledTime = nextBar - timeInPhrase;
+                        if (scheduledTime > 0) {
+                            isNextMetronomeTickDominant = true;
+                        }
+                    }
+                    if (scheduledTime > 0) {
+                        isNextMetronomeTickScheduled = true;
+                        nextMetronomeTickStartTime = time + scheduledTime;
+                        (isNextMetronomeTickDominant ? metronomeOne : metronomeTwoThreeFour).PlayScheduled(nextMetronomeTickStartTime);
+                        //Debug.LogFormat("Will play {4} at: {0}, in {1} (time per bar: {2}, time per beat: {3})",
+                        //    nextMetronomeTickStartTime, scheduledTime, CurrentPhrase.TimePerBar, CurrentPhrase.TimePerBeat,
+                        //    isNextMetronomeTickDominant ? "BAR" : "Beat");
+                    }
+                }
+                if (isNextMetronomeTickScheduled && time >= nextMetronomeTickStartTime) {
+                    //Debug.LogFormat("isNextLoopTickScheduled was reset at {0} >= {1}", time, nextMetronomeTickStartTime);
+                    isNextMetronomeTickScheduled = false;
+                }
+
+            } else {
+                metronomeBar = 0;
+                metronomeBeat = 0;
+
+                isNextMetronomeTickScheduled = false;
+                metronomeOne.Stop();
+                metronomeTwoThreeFour.Stop();
+                nextMetronomeTickStartTime = double.MaxValue;
             }
         }
 
@@ -235,6 +348,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 songAudio.Play();
                 onPlayStateChanged.Invoke();
             }
+            metronomeBar = 0;
+            metronomeBeat = 0;
         }
 
         public void StopPlaying() {
