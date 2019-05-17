@@ -23,6 +23,12 @@ atmosphere of the song.
 More specifically, the duration of a section in bars will usually be 4 or 8, but 12, 
 16 or even 32 is also possible.
 
+One thing you should keep in mind when mapping the song structure is that the primary
+purpose of that song structure is to guide the gameplay mapping process. There is a 
+natural flow and progression through each individual song, and getting the sections 
+right will help you or others who create gameplay for that song to be in tune with
+that flow.
+
 For many songs, just mapping out the sections will be sufficient and you can safely ignore
 that phrases even exist. But often, splitting sections, especially longer ones, into
 phrases will still be helpful:
@@ -31,15 +37,15 @@ phrases will still be helpful:
 
 One way to understand phrases in music is to view sections as paragraphs, and phrases
 as sentences. From a rhythm game perspective, phrases are best seen as comparatively
-short segment, maybe two or four bars, that encapsulates one idea in terms of gameplay.
-
+short segments, maybe two or four bars, that encapsulates one idea in terms of gameplay.
 More specifically, the duration of a section in bars will usually be 4 or 8, but 1, 12, 
 16 or more is also possible
 
-As said above, it's often enough or even best to have phrases and sections be one and
-the same. But if you find noticeable changes within a section, or if a section has
-segments that repeat, splitting the section into several phrases can be preferable,
-in particular if those noticeable changes, or repetitions are relevant for gameplay.
+As said in the section on *Sections*, it's often enough or even best to have phrases 
+and sections be one and the same. But if you find noticeable changes within a section, 
+or if a section has segments that repeat, splitting the section into several phrases 
+can be preferable, in particular if those noticeable changes, or repetitions are 
+relevant for gameplay.
 
 One technical reason why you may need phrases, or even every short phrases with just a 
 single bar, is when the tempo or time signature changes:
