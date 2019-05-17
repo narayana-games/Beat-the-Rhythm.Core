@@ -33,21 +33,27 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     [Serializable]
     public class Section : SongSegment {
         public enum Type : int {
-            Silence,
-            Intro,
-            Verse,
-            Chorus,
-            Solo,
-            Break,
-            Bridge,
-            BuildUp,
-            Drop,
-            FastDrop,
-            Outro,
-            FadeOut
+            Silence = 0,
+            Intro = 1,
+            Breakdown = 2,
+            BuildUp = 3, // synonyms: Ramp, Riser
+            Drop = 4,
+            FastDrop = 5,
+            Verse = 6,
+            Chorus = 7,
+            Solo = 8,
+            Break = 9, // synonyms: Tag, Middle 8
+            Bridge = 10,
+            Outro = 11,
+            FadeOut = 12
         }
 
-        /// <summary>The type of this section.</summary>
+        /// <summary>
+        ///     The type of this section. Common patterns:
+        ///     EDM: Intro-Breakdown-Buildup-Drop-Breakdown-Buildup-Drop-Outro
+        ///     Pop: Intro-Verse-Chorus-Verse-Chorus-Break-Chorus-Chorus-Outro
+        ///     See also: http://dsmootz.blogspot.com/2015/05/song-structure-cage-match-verse-chorus.html
+        /// </summary>
         public Type type = Type.Intro;
 
         /// <summary>One or more phrases that this section consists of.</summary>
