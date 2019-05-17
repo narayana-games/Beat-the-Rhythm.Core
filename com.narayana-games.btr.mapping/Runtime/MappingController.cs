@@ -33,6 +33,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public UnityEvent onCurrentBeatsPerBarChanged = new UnityEvent();
         public UnityEvent onChanged = new UnityEvent();
 
+        public UnityEvent onPlayStateChanged = new UnityEvent();
+
         public MultiTrackAudioSource songAudio;
 
         public string currentMapPath = "C:/GameDev/TestMapA.json";
@@ -44,13 +46,16 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public bool IsPaused {
             get { return isPaused; }
             set {
-                isPaused = value;
-                if (songAudio != null) {
-                    if (isPaused) {
-                        songAudio.Pause();
-                    } else {
-                        songAudio.UnPause();
+                if (isPaused != value) {
+                    isPaused = value;
+                    if (songAudio != null) {
+                        if (isPaused) {
+                            songAudio.Pause();
+                        } else {
+                            songAudio.UnPause();
+                        }
                     }
+                    onPlayStateChanged.Invoke();
                 }
             }
         }
@@ -59,19 +64,22 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public bool IsLooping {
             get { return isLooping; }
             set {
-                isLooping = value;
-                if (songAudio != null) {
-                    if (isLooping) {
-                        if (SelectedSection != null) {
-                            songAudio.CurrentLoopedSegment = SelectedSection;
+                if (isLooping != value) {
+                    isLooping = value;
+                    if (songAudio != null) {
+                        if (isLooping) {
+                            if (SelectedSection != null) {
+                                songAudio.CurrentLoopedSegment = SelectedSection;
+                            } else {
+                                songAudio.CurrentLoopedSegment = CurrentPhrase;
+                            }
+                            songAudio.LoopCurrentSegment = true;
                         } else {
-                            songAudio.CurrentLoopedSegment = CurrentPhrase;
+                            songAudio.LoopCurrentSegment = false;
+                            songAudio.CurrentLoopedSegment = null;
                         }
-                        songAudio.LoopCurrentSegment = true;
-                    } else {
-                        songAudio.LoopCurrentSegment = false;
-                        songAudio.CurrentLoopedSegment = null;
                     }
+                    onPlayStateChanged.Invoke();
                 }
             }
         }
@@ -225,12 +233,14 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public void StartPlaying() {
             if (!IsPlaying && !IsPaused) {
                 songAudio.Play();
+                onPlayStateChanged.Invoke();
             }
         }
 
         public void StopPlaying() {
             IsPaused = false;
             songAudio.Stop();
+            onPlayStateChanged.Invoke();
         }
 
         public bool IsPlaying {

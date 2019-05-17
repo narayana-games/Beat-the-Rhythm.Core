@@ -681,12 +681,19 @@ namespace NarayanaGames.Common.Audio {
             IsPaused = false;
             if (IsValid) {
 #if !OCULUS_OSP
-                foreach (AudioSource audioSource in IndividualTracks) {
+                foreach (AudioSource audioSource in individualTracks) {
                     if (audioSource.isActiveAndEnabled) {
                         //Debug.LogFormat("Stopped {0} - {1}", audioSource.name, audioSource.clip.name);
                         audioSource.Stop();
                     }
                 }
+                foreach (AudioSource audioSource in individualTracksLoop) {
+                    if (audioSource.isActiveAndEnabled) {
+                        //Debug.LogFormat("Stopped {0} - {1}", audioSource.name, audioSource.clip.name);
+                        audioSource.Stop();
+                    }
+                }
+
 #else
                 foreach (OSPAudioSource audioSource in individualTracksOSP) {
                     audioSource.Stop();
@@ -703,9 +710,15 @@ namespace NarayanaGames.Common.Audio {
             if (IsValid) {
                 IsPaused = true;
 #if !OCULUS_OSP
-                foreach (AudioSource audioSource in IndividualTracks) {
+                foreach (AudioSource audioSource in individualTracks) {
                     if (audioSource.isActiveAndEnabled) {
                         //Debug.LogFormat("Paused {0} - {1}", audioSource.name, audioSource.clip.name);
+                        audioSource.Pause();
+                    }
+                }
+                foreach (AudioSource audioSource in individualTracksLoop) {
+                    if (audioSource.isActiveAndEnabled) {
+                        //Debug.LogFormat("Stopped {0} - {1}", audioSource.name, audioSource.clip.name);
                         audioSource.Pause();
                     }
                 }
