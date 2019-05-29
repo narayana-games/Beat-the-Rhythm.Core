@@ -96,6 +96,48 @@ namespace NarayanaGames.Common.Audio {
         private double nextStartTime = double.MaxValue;
         private double nextSwitchTime = double.MaxValue;
 
+        private SongSegment currentLoopedSegment = null;
+        public SongSegment CurrentLoopedSegment {
+            get { return currentLoopedSegment; }
+            set {
+                if (currentLoopedSegment != value) {
+                    //Debug.LogFormat("Setting looped segment from '{0}' to '{1}'", currentLoopedSegment, value);
+                    currentLoopedSegment = value;
+                    RescheduleLoop();
+                }
+            }
+        }
+
+        private void RescheduleLoop() {
+            if (IsPlaying && LoopCurrentSegment) {
+                if (CurrentLoopedSegment != null) {
+                    if (isNextScheduled) {
+                        //Debug.LogFormat("Rescheduling loop for {0}", CurrentLoopedSegment.name);
+                        if (UpdateNextStartTime()) {
+                            UpdateScheduledAlternate(nextStartTime, CurrentLoopedSegment.StartTime);
+                            SetScheduledEndTime(nextStartTime);
+                            nextSwitchTime = nextStartTime;
+                            nextStartTime += CurrentLoopedSegment.DurationSeconds;
+                        } else {
+                            isNextScheduled = false;
+                            nextSwitchTime = double.MaxValue;
+                            nextStartTime = double.MaxValue;
+                            foreach (AudioSource audioSource in IndividualTracksScheduled) {
+                                if (audioSource.isActiveAndEnabled) {
+                                    audioSource.Stop();
+                                }
+                            }
+                        }
+                    } 
+                //    else {
+                //        Debug.LogFormat("NOT Rescheduling loop for {0}", CurrentLoopedSegment.name);
+                //    }
+                //} else {
+                //    Debug.LogFormat("NOT Rescheduling loop BECAUSE no segment was selected");
+                }
+            }
+        }
+
         private bool loopCurrentSegment = false;
         public bool LoopCurrentSegment {
             get { return loopCurrentSegment; }
@@ -113,16 +155,19 @@ namespace NarayanaGames.Common.Audio {
             }
         }
 
-        private void UpdateNextStartTime() {
+        private bool UpdateNextStartTime() {
             if (LoopCurrentSegment && CurrentLoopedSegment != null) {
+                //Debug.LogFormat("Setting nextStartTime from {0} to {1}", nextSwitchTime, AudioSettings.dspTime + (CurrentLoopedSegment.EndTime - TimePrecise));
                 nextStartTime = AudioSettings.dspTime + (CurrentLoopedSegment.EndTime - TimePrecise);
             }
+            return CurrentLoopedSegment.EndTime - TimePrecise > 0F;
         }
 
         private void CheckLoop() {
-            if (LoopCurrentSegment && CurrentLoopedSegment != null) {
+            if (IsPlaying && LoopCurrentSegment && CurrentLoopedSegment != null) {
                 double time = AudioSettings.dspTime;
-                if (!isNextScheduled && time + 1.0f > nextStartTime) {
+                if (!isNextScheduled && time + 0.3f > nextStartTime) {
+                    //Debug.LogFormat("Scheduling loop for '{0}' at {1} ({2})", CurrentLoopedSegment.name, nextStartTime, CurrentLoopedSegment.StartTime);
                     isNextScheduled = true;
                     PlayScheduledAlternate(nextStartTime, CurrentLoopedSegment.StartTime);
                     SetScheduledEndTime(nextStartTime);
@@ -130,18 +175,11 @@ namespace NarayanaGames.Common.Audio {
                     nextStartTime += CurrentLoopedSegment.DurationSeconds;
                 }
                 if (isNextScheduled && time >= nextSwitchTime) {
+                    //Debug.LogFormat("Switching at {0} (time = {1})", nextSwitchTime, time);
                     isNextScheduled = false;
                     nextSwitchTime = nextStartTime;
                     isAlternateTracks = !isAlternateTracks;
                 }
-            }
-        }
-
-        private SongSegment currentLoopedSegment = null;
-        public SongSegment CurrentLoopedSegment {
-            get { return currentLoopedSegment; }
-            set {
-                currentLoopedSegment = value;
             }
         }
 
@@ -463,7 +501,9 @@ namespace NarayanaGames.Common.Audio {
                 if (CheckStartTime()) {
                     return true;
                 }
-                return IsValid ? IndividualTracks[0].isPlaying : false;
+                return IsValid 
+                    ? IndividualTracks[0].isPlaying || (isNextScheduled && IndividualTracksScheduled[0].isPlaying)
+                    : false;
             }
         }
 
@@ -591,14 +631,38 @@ namespace NarayanaGames.Common.Audio {
                 if (IndividualTracks == null || IndividualTracks.Count == 0 || IndividualTracks[0].clip == null) {
                     return 0.0;
                 }
-                return IsValid ? ((double)IndividualTracks[0].timeSamples) / ((double)IndividualTracks[0].clip.frequency) : 0.0;
+                return IsValid ? SamplesToTime(IndividualTracks[0].clip, IndividualTracks[0].timeSamples) : 0.0;
             }
             set {
+                //Debug.LogFormat("TimePrecise set from: {0} to {1}", TimePrecise, value);
                 foreach (AudioSource audioSource in IndividualTracks) {
-                    audioSource.timeSamples = (int) (value * ((double)IndividualTracks[0].clip.frequency));
+                    audioSource.timeSamples = TimeToSamples(IndividualTracks[0].clip, value);
                 }
+                RescheduleLoop();
             }
         }
+
+        public double TimePreciseScheduled {
+            get {
+                if (CheckStartTime()) {
+                    return (float)PreRollTime;
+                }
+                if (IndividualTracksScheduled == null || IndividualTracksScheduled.Count == 0 || IndividualTracksScheduled[0].clip == null) {
+                    return 0.0;
+                }
+                return IsValid ? SamplesToTime(IndividualTracksScheduled[0].clip, IndividualTracksScheduled[0].timeSamples) : 0.0;
+            }
+        }
+
+
+        public static int TimeToSamples(AudioClip clip, double time) {
+            return (int)(time * clip.frequency);
+        }
+
+        public static double SamplesToTime(AudioClip clip, int timeSamples) {
+            return ((double)timeSamples) / ((double)clip.frequency);
+        }
+
 
         /* NOTE: Instead of using volume, you should usually use the AudioMixer!
          * If you have a use case for having volume, just let me know by sending
@@ -814,7 +878,16 @@ namespace NarayanaGames.Common.Audio {
             foreach (AudioSource audioSource in IndividualTracksScheduled) {
                 if (audioSource.isActiveAndEnabled) {
                     audioSource.PlayScheduled(timeToStart);
-                    audioSource.timeSamples = (int)(startAtTime * ((double)IndividualTracks[0].clip.frequency));
+                    audioSource.timeSamples = TimeToSamples(IndividualTracksScheduled[0].clip, startAtTime);
+                }
+            }
+        }
+
+        private void UpdateScheduledAlternate(double timeToStart, double startAtTime) {
+            foreach (AudioSource audioSource in IndividualTracksScheduled) {
+                if (audioSource.isActiveAndEnabled) {
+                    audioSource.SetScheduledStartTime(timeToStart);
+                    audioSource.timeSamples = TimeToSamples(IndividualTracksScheduled[0].clip, startAtTime);
                 }
             }
         }
