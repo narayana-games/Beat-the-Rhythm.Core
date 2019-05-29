@@ -88,6 +88,59 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>List of sections of this recording.</summary>
         public List<Section> sections = new List<Section>();
 
+        public Section ConvertPhraseIntoSection(Phrase phrase) {
+            Section oldParent = FindSectionAt(phrase.StartTime);
+
+            Section newSection = new Section();
+            sections.Add(newSection);
+            newSection.type = Section.Type.Break;
+            newSection.CopyFrom(phrase);
+            newSection.phrases.Clear();
+            newSection.phrases.Add(phrase);
+
+            int phraseIndex = -1;
+            for (int i=0; i < oldParent.phrases.Count; i++) {
+                if (oldParent.phrases[i] == phrase) {
+                    phraseIndex = i;
+                    break;
+                }
+            }
+
+            if (phraseIndex < 0) {
+                UnityEngine.Debug.LogErrorFormat("Fatal error: cannot find '{0}' in '{1}'", phrase.name, oldParent.name);
+                return null;
+            }
+
+            oldParent.phrases.Remove(phrase);
+
+            if (phraseIndex == 0) {
+                oldParent.SetStartTimeKeepEndTime(newSection.EndTime);
+            } else if (phraseIndex == oldParent.phrases.Count) { // already removed!
+                oldParent.SetEndTimeKeepStartTime(newSection.StartTime);
+            } else {
+                // a section in the middle => more trouble, now we'll have three sections
+                Section thirdSection = new Section();
+                sections.Add(thirdSection);
+                thirdSection.CopyFrom(oldParent);
+                thirdSection.phrases.Clear();
+                thirdSection.phrases.AddRange(oldParent.phrases);
+                thirdSection.type = oldParent.type;
+
+                oldParent.phrases.RemoveRange(phraseIndex, oldParent.phrases.Count - phraseIndex);
+                oldParent.SetEndTimeKeepStartTime(newSection.StartTime);
+
+                thirdSection.phrases.RemoveRange(0, phraseIndex);
+                thirdSection.name = thirdSection.phrases[0].name;
+                thirdSection.SetStartTimeKeepEndTime(newSection.EndTime);
+                thirdSection.FixDurationBars();
+            }
+            oldParent.FixDurationBars();
+
+            sections.Sort();
+
+            return newSection;
+        }
+
         public bool DeleteSegment(SongSegment segment) {
             if (segment is Phrase) {
                 Section parentSection = FindSectionAt(segment.StartTime);
@@ -166,16 +219,21 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             } else { // otherwise, until the next section, or end of song
                 segmentToAdd.StartTime = timeInSong;
 
-                T nextSection = FindSegmentAfter(segments, timeInSong);
-                if (nextSection != null) {
-                    segmentToAdd.DurationSeconds = nextSection.StartTime - segmentToAdd.StartTime;
+                T nextSegment = FindSegmentAfter(segments, timeInSong);
+                if (nextSegment != null) {
+                    segmentToAdd.DurationSeconds = nextSegment.StartTime - segmentToAdd.StartTime;
                 } else {
-                    segmentToAdd.DurationSeconds = durationSeconds - segmentToAdd.StartTime;
+                    Section nextSection = FindSegmentAfter(sections, timeInSong);
+                    if (nextSection != null) {
+                        segmentToAdd.DurationSeconds = nextSection.StartTime - segmentToAdd.StartTime;
+                    } else {
+                        segmentToAdd.DurationSeconds = durationSeconds - segmentToAdd.StartTime;
+                    }
                 }
 
-                T currentSection = FindSegmentAt(segments, timeInSong);
-                if (currentSection != null) {
-                    currentSection.DurationSeconds = segmentToAdd.StartTime - currentSection.StartTime;
+                T currentSegment = FindSegmentAt(segments, timeInSong);
+                if (currentSegment != null) {
+                    currentSegment.DurationSeconds = segmentToAdd.StartTime - currentSegment.StartTime;
                 }
             }
 
