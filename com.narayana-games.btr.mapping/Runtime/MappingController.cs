@@ -19,6 +19,7 @@ using UnityEngine;
 using NarayanaGames.BeatTheRhythm.Maps;
 using UnityEngine.Events;
 using NarayanaGames.Common.Audio;
+using System;
 
 namespace NarayanaGames.BeatTheRhythm.Mapping {
 
@@ -28,9 +29,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
     /// </summary>
     public class MappingController : MonoBehaviour {
 
+        private const double MARGIN = 0.0001F;
+
         [Header("Audio")]
         public MultiTrackAudioSource songAudio;
         public AudioSource previewPlayer;
+        public AudioSource previewTick;
         public AudioSource loopTick;
         public AudioSource metronomeOne;
         public AudioSource metronomeTwoThreeFour;
@@ -75,20 +79,24 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 if (isLooping != value) {
                     isLooping = value;
                     if (songAudio != null) {
-                        if (isLooping) {
-                            if (SelectedSection != null) {
-                                songAudio.CurrentLoopedSegment = SelectedSection;
-                            } else {
-                                songAudio.CurrentLoopedSegment = CurrentPhrase;
-                            }
-                            songAudio.LoopCurrentSegment = true;
-                        } else {
-                            songAudio.LoopCurrentSegment = false;
-                            songAudio.CurrentLoopedSegment = null;
-                        }
+                        UpdateLoopedSegment();
                     }
                     onPlayStateChanged.Invoke();
                 }
+            }
+        }
+
+        private void UpdateLoopedSegment() {
+            if (isLooping) {
+                if (SelectedSection != null) {
+                    songAudio.CurrentLoopedSegment = SelectedSection;
+                } else {
+                    songAudio.CurrentLoopedSegment = CurrentPhrase;
+                }
+                songAudio.LoopCurrentSegment = true;
+            } else {
+                songAudio.LoopCurrentSegment = false;
+                songAudio.CurrentLoopedSegment = null;
             }
         }
 
@@ -158,14 +166,50 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         private void CheckSegmentChanged() {
             if (songAudio != null && IsPlaying) {
-                if (CurrentSection == null || songAudio.TimePrecise < CurrentSection.StartTime || songAudio.TimePrecise > CurrentSection.EndTime) {
-                    currentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
-                    CurrentSection = currentMap.songStructure.FindSectionAt(songAudio.TimePrecise);
-                } else if (CurrentPhrase == null || songAudio.TimePrecise < CurrentPhrase.StartTime || songAudio.TimePrecise > CurrentPhrase.EndTime) {
-                    CurrentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
+                double currentTime = songAudio.TimePrecise;
+                double currentTimePlus = currentTime + MARGIN;
+                if (CurrentSection == null || currentTimePlus < CurrentSection.StartTime || currentTime > CurrentSection.EndTime) {
+                    currentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
+                    CurrentSection = currentMap.songStructure.FindSectionAt(currentTime);
+                } else if (CurrentPhrase == null || currentTimePlus < CurrentPhrase.StartTime || currentTime > CurrentPhrase.EndTime) {
+                    if (CurrentPhrase == null) {
+                        Debug.LogFormat("Setting current phrase because it was previously null");
+                    } else {
+                        Debug.LogFormat("Current Time: {0}/{1}, Scheduled Time: {2}, current phrase: {3}", 
+                            songAudio.TimePrecise, currentTimePlus, songAudio.TimePreciseScheduled, CurrentPhrase);
+                    }
+                    CurrentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
                 }
             }
         }
+
+        public void TestPlay(double startTime, double testTime, double endTime) {
+            // We need very high precision here - seems like while 16ms does not
+            // feel "laggy", 5ms feels tighter and more precise, see also the
+            // answer starting with "The accepted answer here mainly discusses 
+            // perception of audio synchronization in passively watching video" at:
+            // https://gamedev.stackexchange.com/questions/74973/maximum-audio-delay-before-the-player-notices
+            // https://gdcvault.com/play/1017877/The-Audio-Callback-for-Audio
+
+            if (IsPlaying) {
+                IsPaused = true;
+                loopTick.Stop();
+                metronomeOne.Stop();
+                metronomeTwoThreeFour.Stop();
+            }
+            previewPlayer.clip = songAudio.individualTracks[0].clip;
+            double time = AudioSettings.dspTime;
+            time += 0.05F; // give it a brief moment
+
+            previewPlayer.PlayScheduled(time);
+            previewPlayer.timeSamples = MultiTrackAudioSource.TimeToSamples(previewPlayer.clip, startTime);
+            previewPlayer.SetScheduledEndTime(time + endTime - startTime);
+
+            if (testTime > 0) {
+                previewTick.PlayScheduled(time + testTime - startTime);
+            }
+        }
+
 
         private bool isNextLoopTickScheduled = false;
         private double nextLoopTickStartTime = 0;
@@ -324,7 +368,6 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         public void StartPlaying(SongSegment segment) {
-            StartPlaying(segment.StartTime);
             if (segment is Section) {
                 currentSection = (Section)segment;
                 currentPhrase = CurrentSection.phrases[0];
@@ -333,14 +376,15 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentSection = currentMap.songStructure.FindSectionAt(segment.StartTime);
                 CurrentPhrase = (Phrase)segment;
             }
-            if (IsLooping) {
-                IsLooping = true;
-            }
+            StartPlaying(segment.StartTime);
+            //if (IsLooping) {
+            //    IsLooping = true;
+            //}
         }
 
         public void StartPlaying(double startTime) {
-            songAudio.TimePrecise = startTime;
             StartPlaying();
+            songAudio.TimePrecise = startTime;
         }
 
         public void StartPlaying() {
@@ -360,6 +404,19 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         public bool IsPlaying {
             get { return songAudio != null && songAudio.IsPlaying; }
+        }
+
+        public void ConvertPhraseIntoSection(Phrase phrase) {
+            currentMap.songStructure.ConvertPhraseIntoSection(phrase);
+            Update();
+            CurrentSectionChanged();
+            //if (currentMap.songStructure.ConvertPhraseIntoSection(phrase)) {
+            //    selectedSection = null;
+            //    currentSection = null;
+            //    currentPhrase = null;
+            //    Update();
+            //    CurrentSectionChanged();
+            //}
         }
 
         public void DeleteSegment(SongSegment songSegment) {
@@ -397,6 +454,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             barInPhrase = 1;
             beatInBar = 1;
 
+            UpdateLoopedSegment();
             onSectionChanged.Invoke();
         }
 
@@ -445,6 +503,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             barInPhrase = 1;
             beatInBar = 1;
 
+            UpdateLoopedSegment();
             onPhraseChanged.Invoke();
         }
 
