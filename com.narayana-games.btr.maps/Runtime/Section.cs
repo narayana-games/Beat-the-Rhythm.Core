@@ -105,6 +105,25 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             }
         }
 
+        public override void CalculateBPM() {
+            base.CalculateBPM();
+            if (phrases.Count == 1) {
+                Phrase myPhrase = phrases[0];
+                myPhrase.startBar = this.startBar;
+                myPhrase.durationBars = this.durationBars;
+                myPhrase.beatsPerBar = this.beatsPerBar;
+                myPhrase.beatUnit = this.beatUnit;
+                phrases[0].CalculateBPM();
+            }
+        }
+
+        public void FixDurationBars() {
+            durationBars = 0;
+            foreach (Phrase phrase in phrases) {
+                durationBars += phrase.durationBars;
+            }
+        }
+
     }
 
 }

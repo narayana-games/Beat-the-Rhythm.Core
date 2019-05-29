@@ -25,7 +25,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     [Serializable]
     public abstract class SongSegment : IComparable {
         /// <summary>The name of this segment.</summary>
-        public string name = "Phrase";
+        public string name = "SongSegment";
 
         /// <summary>The precise start time of this segment.</summary>
         public double startTime = 0;
@@ -90,7 +90,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>Tempo of this phrase in BPM.</summary>
         public double bpm = 120;
 
-        public void CalculateBPM() {
+        public virtual void CalculateBPM() {
             CalculateBPM(DurationSeconds, durationBars);
         }
 
@@ -115,6 +115,21 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         //}
 
+        public void CopyFrom(SongSegment other) {
+            this.name = other.name;
+
+            this.startTime = other.startTime;
+            this.durationSeconds = other.durationSeconds;
+
+            this.startBar = other.startBar;
+            this.durationBars = other.durationBars;
+
+            this.beatsPerBar = other.beatsPerBar;
+            this.beatUnit = other.beatUnit;
+
+            this.bpm = other.bpm;
+        }
+
         public int CompareTo(object obj) {
             SongSegment other = obj as SongSegment;
             if (other == null) {
@@ -124,7 +139,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         }
 
         public override string ToString() {
-            return string.Format("{0} [{1:0}-{2:0}]", name, StartTime, EndTime);
+            return string.Format("{0} [{1}-{2}]", name, StartTime, EndTime);
         }
     }
 
