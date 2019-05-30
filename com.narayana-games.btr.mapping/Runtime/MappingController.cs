@@ -446,7 +446,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             CurrentSectionChanged();
         }
 
-        private void CurrentSectionChanged() {
+        public void CurrentSectionChanged() {
             sectionInSong = currentMap.songStructure.FindSectionIndex(currentSection);
 
             phraseInSection = 1;
