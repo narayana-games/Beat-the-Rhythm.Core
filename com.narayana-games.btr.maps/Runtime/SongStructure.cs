@@ -141,6 +141,15 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return newSection;
         }
 
+        public void CalculateBarsFromBPMandTimes() {
+            int barInSong = 1;
+            foreach (Section section in sections) {
+                section.startBar = barInSong;
+                section.CalculateBarsFromBPMandTimes(barInSong);
+                barInSong += section.durationBars;
+            }
+        }
+
         public bool DeleteSegment(SongSegment segment) {
             if (segment is Phrase) {
                 Section parentSection = FindSectionAt(segment.StartTime);

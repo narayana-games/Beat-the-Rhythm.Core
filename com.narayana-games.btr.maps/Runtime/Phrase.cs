@@ -15,6 +15,7 @@
 #endregion Copyright and License Information
 
 using System;
+using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps {
 
@@ -48,6 +49,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     public class Phrase : SongSegment {
         public Phrase() {
             name = "Phrase";
+        }
+
+        public void CalculateBarsFromBPMandTimes(int barInSong) {
+            startBar = barInSong;
+            durationBars = Mathf.RoundToInt((float) (durationSeconds / TimePerBar));
         }
     }
 

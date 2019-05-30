@@ -117,6 +117,15 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             }
         }
 
+        public void CalculateBarsFromBPMandTimes(int barInSong) {
+            startBar = barInSong;
+            foreach (Phrase phrase in phrases) {
+                phrase.startBar = barInSong;
+                phrase.CalculateBarsFromBPMandTimes(barInSong);
+                durationBars += phrase.durationBars;
+            }
+        }
+
         public void FixDurationBars() {
             durationBars = 0;
             foreach (Phrase phrase in phrases) {
