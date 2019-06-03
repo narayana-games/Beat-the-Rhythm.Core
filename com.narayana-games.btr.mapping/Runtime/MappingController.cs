@@ -326,7 +326,18 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 json = reader.ReadToEnd();
             }
             currentMap = JsonUtility.FromJson<MapContainer>(json);
+
+            FixBars();
             SetupNewMap();
+        }
+
+        private void FixBars() {
+            int firstBar = 1;
+            for (int i = 0; i < currentMap.songStructure.sections.Count; i++) {
+                currentMap.songStructure.sections[i].startBar = firstBar;
+                currentMap.songStructure.sections[i].CalculateStartBarsForPhrases();
+                firstBar += currentMap.songStructure.sections[i].durationBars;
+            }
         }
 
         private void SetupNewMap() {
@@ -342,11 +353,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public void SaveMap() {
             if (currentMap == null) { Debug.LogError("Cannot save map before map was created!"); return; }
 
-            int firstBar = 1;
-            for (int i = 0; i < currentMap.songStructure.sections.Count; i++) {
-                currentMap.songStructure.sections[i].startBar = firstBar;
-                firstBar += currentMap.songStructure.sections[i].durationBars;
-            }
+            FixBars();
+
             string json = JsonUtility.ToJson(currentMap, true);
             using (System.IO.StreamWriter writer = System.IO.File.CreateText(currentMapPath)) {
                 writer.Write(json);
@@ -404,6 +412,18 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         public bool IsPlaying {
             get { return songAudio != null && songAudio.IsPlaying; }
+        }
+
+        public void MoveToPrevSection(Phrase phrase) {
+            currentMap.songStructure.MoveToPrevSection(phrase);
+            Update();
+            CurrentSectionChanged();
+        }
+
+        public void MoveToNextSection(Phrase phrase) {
+            currentMap.songStructure.MoveToNextSection(phrase);
+            Update();
+            CurrentSectionChanged();
         }
 
         public void ConvertPhraseIntoSection(Phrase phrase) {
@@ -468,6 +488,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             if (currentBPM > 1) {
                 currentPhrase.bpm = currentBPM;
             }
+
+            currentSection.CalculateStartBarsForPhrases();
 
             CurrentPhraseChanged();
         }

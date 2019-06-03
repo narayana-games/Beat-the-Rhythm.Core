@@ -64,6 +64,16 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             phrases.Add(new Phrase());
         }
 
+        public override string Name {
+            get => base.Name;
+            set {
+                if (phrases.Count == 1) {
+                    phrases[0].name = value;
+                }
+                name = value;
+            }
+        }
+
         public override double StartTime {
             get {
                 if (phrases.Count > 0) {
@@ -122,8 +132,44 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             foreach (Phrase phrase in phrases) {
                 phrase.startBar = barInSong;
                 phrase.CalculateBarsFromBPMandTimes(barInSong);
+                barInSong += phrase.durationBars;
                 durationBars += phrase.durationBars;
             }
+        }
+
+        public void CalculateStartBarsForPhrases() {
+            int barInSong = startBar;
+            durationBars = 0;
+            foreach (Phrase phrase in phrases) {
+                phrase.startBar = barInSong;
+                phrase.CalculateBarsFromBPMandTimes(barInSong);
+                barInSong += phrase.durationBars;
+                durationBars += phrase.durationBars;
+            }
+        }
+
+        public void Consume(Phrase phrase) {
+            phrases.Add(phrase);
+            UpdateTimesFromPhrases();
+        }
+
+        public void Consume(Section other) {
+            other.phrases[0].Name = other.Name;
+            phrases.AddRange(other.phrases);
+            UpdateTimesFromPhrases();
+        }
+
+        public void UpdateTimesFromPhrases() {
+            phrases.Sort();
+
+            Phrase first = phrases[0];
+            Phrase last = phrases[phrases.Count - 1];
+
+            startTime = first.startTime;
+            durationSeconds = last.EndTime - startTime;
+
+            startBar = first.startBar;
+            durationBars = last.startBar + last.durationBars - startBar;
         }
 
         public void FixDurationBars() {

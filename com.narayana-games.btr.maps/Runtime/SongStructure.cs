@@ -88,6 +88,42 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>List of sections of this recording.</summary>
         public List<Section> sections = new List<Section>();
 
+        public void MoveToPrevSection(Phrase phrase) {
+            if (!IsFirstPhraseInSection(phrase)) {
+                UnityEngine.Debug.LogErrorFormat("Phrase '{0}' is not the first phrase in a section, cannot move to previous section!", phrase.Name);
+                return;
+            }
+            if (phrase.StartTime < 0.001F) {
+                UnityEngine.Debug.LogErrorFormat("Phrase '{0}' is not first phrase in song, cannot move to previous section!", phrase.Name);
+                return;
+            }
+            Section oldParent = FindSectionAt(phrase.StartTime);
+            Section newParent = FindSectionAt(phrase.StartTime - 0.1F);
+            MovePhrase(phrase, oldParent, newParent);
+        }
+
+        public void MoveToNextSection(Phrase phrase) {
+            if (!IsLastPhraseInSection(phrase)) {
+                UnityEngine.Debug.LogErrorFormat("Phrase '{0}' is not the last phrase in a section, cannot move to next section!", phrase.Name);
+            }
+            if (phrase.EndTime > durationSeconds - 0.001F) {
+                UnityEngine.Debug.LogErrorFormat("Phrase '{0}' is not last phrase in song, cannot move to next section!", phrase.Name);
+                return;
+            }
+            Section oldParent = FindSectionAt(phrase.StartTime);
+            Section newParent = FindSectionAfter(phrase.StartTime);
+            MovePhrase(phrase, oldParent, newParent);
+        }
+
+        private void MovePhrase(Phrase phrase, Section from, Section to) {
+            from.phrases.Remove(phrase);
+            from.UpdateTimesFromPhrases();
+
+            to.Consume(phrase);
+
+            sections.Sort();
+        }
+
         public Section ConvertPhraseIntoSection(Phrase phrase) {
             Section oldParent = FindSectionAt(phrase.StartTime);
 
@@ -107,7 +143,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             }
 
             if (phraseIndex < 0) {
-                UnityEngine.Debug.LogErrorFormat("Fatal error: cannot find '{0}' in '{1}'", phrase.name, oldParent.name);
+                UnityEngine.Debug.LogErrorFormat("Fatal error: cannot find '{0}' in '{1}'", phrase.Name, oldParent.Name);
                 return null;
             }
 
@@ -130,7 +166,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                 oldParent.SetEndTimeKeepStartTime(newSection.StartTime);
 
                 thirdSection.phrases.RemoveRange(0, phraseIndex);
-                thirdSection.name = thirdSection.phrases[0].name;
+                thirdSection.Name = thirdSection.phrases[0].Name;
                 thirdSection.SetStartTimeKeepEndTime(newSection.EndTime);
                 thirdSection.FixDurationBars();
             }
@@ -150,7 +186,33 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             }
         }
 
+        public bool DeleteSection(Section sectionToDelete) {
+            if (sections.Count < 2) {
+                UnityEngine.Debug.LogError("Cannot delete section because we only have one left");
+                return false;
+            }
+            try {
+                int index = sections.IndexOf(sectionToDelete);
+
+                Section other = sections[index + (index == 0 ? 1 : -1)];
+                if (other.phrases.Count == 1) {
+                    other.phrases[0].Name = other.Name;
+                }
+                other.Consume(sectionToDelete);
+
+                sections.RemoveAt(index);
+
+                return true;
+            } catch (Exception exc) {
+                UnityEngine.Debug.LogErrorFormat("Deleting section '{0}' failed because: {1}", sectionToDelete, exc);
+            }
+            return false;
+        }
+
         public bool DeleteSegment(SongSegment segment) {
+            if (segment is Section) {
+                return DeleteSection((Section)segment);
+            }
             if (segment is Phrase) {
                 Section parentSection = FindSectionAt(segment.StartTime);
                 if (parentSection.phrases.Count > 1) {
@@ -160,11 +222,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                     // you should not be able to even select phrases the equal sections; but
                     // if you do => handle the section instead
                     segment = parentSection;
+                    if (sections.Count > 1) {
+                        DeleteSegment(sections, (Section)segment, durationSeconds);
+                        return true;
+                    }
                 }
-            }
-            if (sections.Count > 1) {
-                DeleteSegment(sections, (Section)segment, durationSeconds);
-                return true;
             }
             return false;
         }
@@ -176,7 +238,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                 double nextEndTime = next.EndTime;
                 next.StartTime = segmentToDelete.StartTime;
                 next.DurationSeconds = nextEndTime - next.StartTime;
-            } else {
+            } else { // special handling if last segment is being deleted
                 SongSegment previous = segments[index - 1];
                 previous.DurationSeconds = maxTime - previous.StartTime;
             }
@@ -194,6 +256,16 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             Phrase newPhrase = new Phrase();
             AddSongSegment(section.phrases, newPhrase, timeInSong);
             return newPhrase;
+        }
+
+        public bool IsFirstPhraseInSection(Phrase phrase) {
+            Section section = FindSectionAt(phrase.StartTime);
+            return phrase == section.phrases[0];
+        }
+
+        public bool IsLastPhraseInSection(Phrase phrase) {
+            Section section = FindSectionAt(phrase.StartTime);
+            return phrase == section.phrases[section.phrases.Count - 1];
         }
 
         public int FindSectionIndex(Section section) {
@@ -283,6 +355,5 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             }
             return null;
         }
-
     }
 }

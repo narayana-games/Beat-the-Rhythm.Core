@@ -26,6 +26,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     public abstract class SongSegment : IComparable {
         /// <summary>The name of this segment.</summary>
         public string name = "SongSegment";
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public virtual string Name {
+            get { return name; }
+            set { name = value; }
+        }
 
         /// <summary>The precise start time of this segment.</summary>
         public double startTime = 0;
@@ -116,7 +124,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         //}
 
         public void CopyFrom(SongSegment other) {
-            this.name = other.name;
+            this.Name = other.Name;
 
             this.startTime = other.startTime;
             this.durationSeconds = other.durationSeconds;
@@ -139,7 +147,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         }
 
         public override string ToString() {
-            return string.Format("{0} [{1}-{2}]", name, StartTime, EndTime);
+            return string.Format("{0} [{1}-{2}]", Name, StartTime, EndTime);
         }
     }
 
