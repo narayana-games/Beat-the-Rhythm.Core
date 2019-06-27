@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace NarayanaGames.BeatTheRhythm.Maps {
 
@@ -48,6 +49,105 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             FadeOut = 12
         }
 
+        public override string Name {
+            get => base.Name;
+            set {
+                if (phrases.Count == 1) {
+                    FirstPhrase.name = value;
+                }
+                name = value;
+            }
+        }
+
+        public override double StartTime {
+            get { return FirstPhrase.StartTime; }
+            set { FirstPhrase.StartTime = value; }
+        }
+
+        public override double DurationSeconds {
+            get { return EndTime - StartTime; }
+            set {
+                if (phrases.Count == 1) {
+                    phrases[0].DurationSeconds = value;
+                } else if (phrases.Count > 1) {
+                    Phrase lastPhrase = phrases[phrases.Count - 1];
+                    double newEndTime = StartTime + value;
+                    double durationLastPhrase = newEndTime - lastPhrase.StartTime;
+                    if (durationLastPhrase < 0) {
+                        throw new ArgumentException(string.Format("[{0}] Cannot set duration to less than {1} (start time of last phrase in section: {2}), tried {3}",
+                            this, lastPhrase.StartTime - StartTime, lastPhrase.StartTime, value));
+                    }
+                    lastPhrase.DurationSeconds = durationLastPhrase;
+                }
+            }
+        }
+
+        public override double EndTime { get { return LastPhrase.EndTime; } }
+
+        public override void SetStartTimeKeepEndTime(double newStartTime) {
+            FirstPhrase.SetStartTimeKeepEndTime(newStartTime);
+        }
+
+        public override void SetEndTimeKeepStartTime(double newEndTime) {
+            LastPhrase.SetEndTimeKeepStartTime(newEndTime);
+        }
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override int StartBar {
+            get { return FirstPhrase.StartBar; }
+            set { FirstPhrase.StartBar = value; }
+        }
+
+        public override int DurationBars {
+            get {
+                int durationBars = 0;
+                for (int i = 0; i < phrases.Count; i++) {
+                    durationBars += phrases[i].DurationBars;
+                }
+                return durationBars;
+            }
+            set {
+                if (phrases.Count == 1) {
+                    phrases[0].durationBars = value;
+                } else {
+                    throw new ArgumentException(string.Format("Cannot set DurationBars for sections with multiple Phrases, like: {0}", this));
+                }
+            }
+        }
+
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override int BeatsPerBar {
+            get { return FirstPhrase.BeatsPerBar; }
+            set { FirstPhrase.BeatsPerBar = value; }
+        }
+
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override int BeatUnit {
+            get { return FirstPhrase.BeatUnit; }
+            set { FirstPhrase.BeatUnit = value; }
+        }
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override double BPM {
+            get { return FirstPhrase.BPM; }
+            set { FirstPhrase.BPM = value; }
+        }
+
+
         /// <summary>
         ///     The type of this section. Common patterns:
         ///     EDM: Intro-Breakdown-Buildup-Drop-Breakdown-Buildup-Drop-Outro
@@ -64,121 +164,43 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             phrases.Add(new Phrase());
         }
 
-        public override string Name {
-            get => base.Name;
-            set {
-                if (phrases.Count == 1) {
-                    phrases[0].name = value;
-                }
-                name = value;
-            }
-        }
+        public Phrase FirstPhrase { get { return phrases[0]; } }
+        public Phrase LastPhrase { get { return phrases[phrases.Count - 1]; } }
 
-        public override double StartTime {
-            get {
-                if (phrases.Count > 0) {
-                    return phrases[0].StartTime;
-                }
-                return startTime;
-            }
-            set {
-                startTime = value;
-                if (phrases.Count > 0) {
-                    phrases[0].SetStartTimeKeepEndTime(startTime);
-                }
-            }
-        }
-
-        public override double DurationSeconds {
-            get {
-                return EndTime - StartTime;
-                //return durationSeconds;
-            }
-            set {
-                durationSeconds = value;
-                if (phrases.Count == 1) {
-                    phrases[0].DurationSeconds = value;
-                } else if (phrases.Count > 0) {
-                    Phrase lastPhrase = phrases[phrases.Count - 1];
-                    lastPhrase.SetEndTimeKeepStartTime(EndTime);
-                }
-            }
-        }
-
-        public override double EndTime {
-            get {
-                if (phrases.Count > 0) {
-                    Phrase lastPhrase = phrases[phrases.Count - 1];
-                    return lastPhrase.EndTime;
-                }
-                return base.EndTime;
-            }
-        }
 
         public override void CalculateBPM() {
-            base.CalculateBPM();
-            if (phrases.Count == 1) {
-                Phrase myPhrase = phrases[0];
-                myPhrase.startBar = this.startBar;
-                myPhrase.durationBars = this.durationBars;
-                myPhrase.beatsPerBar = this.beatsPerBar;
-                myPhrase.beatUnit = this.beatUnit;
-                phrases[0].CalculateBPM();
+            for (int i=0; i < phrases.Count; i++) {
+                phrases[i].CalculateBPM();
             }
         }
 
         public void CalculateBarsFromBPMandTimes(int barInSong) {
-            startBar = barInSong;
             foreach (Phrase phrase in phrases) {
                 phrase.startBar = barInSong;
-                phrase.CalculateBarsFromBPMandTimes(barInSong);
+                phrase.CalculateBarsFromBPMandDuration(barInSong);
                 barInSong += phrase.durationBars;
-                durationBars += phrase.durationBars;
             }
         }
 
         public void CalculateStartBarsForPhrases() {
-            int barInSong = startBar;
-            durationBars = 0;
+            int barInSong = StartBar;
             foreach (Phrase phrase in phrases) {
                 phrase.startBar = barInSong;
-                phrase.CalculateBarsFromBPMandTimes(barInSong);
+                phrase.CalculateBarsFromBPMandDuration(barInSong);
                 barInSong += phrase.durationBars;
-                durationBars += phrase.durationBars;
             }
         }
 
         public void Consume(Phrase phrase) {
             phrases.Add(phrase);
-            UpdateTimesFromPhrases();
+            phrases.Sort();
         }
 
         public void Consume(Section other) {
             other.phrases[0].Name = other.Name;
             phrases.AddRange(other.phrases);
-            UpdateTimesFromPhrases();
-        }
-
-        public void UpdateTimesFromPhrases() {
             phrases.Sort();
-
-            Phrase first = phrases[0];
-            Phrase last = phrases[phrases.Count - 1];
-
-            startTime = first.startTime;
-            durationSeconds = last.EndTime - startTime;
-
-            startBar = first.startBar;
-            durationBars = last.startBar + last.durationBars - startBar;
         }
-
-        public void FixDurationBars() {
-            durationBars = 0;
-            foreach (Phrase phrase in phrases) {
-                durationBars += phrase.durationBars;
-            }
-        }
-
     }
 
 }

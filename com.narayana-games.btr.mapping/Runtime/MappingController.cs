@@ -129,6 +129,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             set {
                 if (currentPhrase != null) {
                     currentPhrase = value;
+                    CheckBPMChanged();
                     CurrentPhraseChanged();
                 }
             }
@@ -171,6 +172,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 if (CurrentSection == null || currentTimePlus < CurrentSection.StartTime || currentTime > CurrentSection.EndTime) {
                     currentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
                     CurrentSection = currentMap.songStructure.FindSectionAt(currentTime);
+                    CheckBPMChanged();
                 } else if (CurrentPhrase == null || currentTimePlus < CurrentPhrase.StartTime || currentTime > CurrentPhrase.EndTime) {
                     if (CurrentPhrase == null) {
                         Debug.LogFormat("Setting current phrase because it was previously null");
@@ -179,7 +181,15 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                             songAudio.TimePrecise, currentTimePlus, songAudio.TimePreciseScheduled, CurrentPhrase);
                     }
                     CurrentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
+                    CheckBPMChanged();
                 }
+            }
+        }
+
+        private void CheckBPMChanged() {
+            if (CurrentMap.songStructure.keepTempo) {
+                currentBPM = CurrentPhrase.BPM;
+                secondsPerBar = CurrentPhrase.TimePerBar;
             }
         }
 
@@ -334,9 +344,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private void FixBars() {
             int firstBar = 1;
             for (int i = 0; i < currentMap.songStructure.sections.Count; i++) {
-                currentMap.songStructure.sections[i].startBar = firstBar;
+                currentMap.songStructure.sections[i].StartBar = firstBar;
                 currentMap.songStructure.sections[i].CalculateStartBarsForPhrases();
-                firstBar += currentMap.songStructure.sections[i].durationBars;
+                firstBar += currentMap.songStructure.sections[i].DurationBars;
             }
         }
 
@@ -347,6 +357,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
             currentSection = currentMap.songStructure.FindSectionAt(time);
             currentPhrase = currentMap.songStructure.FindPhraseAt(time);
+            currentPhrase.StartBar = 1;
             CurrentSectionChanged();
         }
 
@@ -384,6 +395,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentSection = currentMap.songStructure.FindSectionAt(segment.StartTime);
                 CurrentPhrase = (Phrase)segment;
             }
+            CheckBPMChanged();
             StartPlaying(segment.StartTime);
             //if (IsLooping) {
             //    IsLooping = true;
@@ -453,15 +465,17 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             if (currentMap == null) { Debug.LogError("Cannot start section before map was created!"); return; }
 
             CloseCurrentSegment(currentSection, barInSection);
-            CloseCurrentSegment(currentPhrase, barInPhrase);
+            double time = CloseCurrentSegment(currentPhrase, barInPhrase);
 
-            currentSection = currentMap.songStructure.AddSection(songAudio.TimePrecise);
-            currentPhrase = currentMap.songStructure.FindPhraseAt(songAudio.TimePrecise);
+            currentSection = currentMap.songStructure.AddSection(time);
+            currentPhrase = currentMap.songStructure.FindPhraseAt(time);
 
             if (currentBPM > 1) {
-                currentSection.bpm = currentBPM;
-                currentPhrase.bpm = currentBPM;
+                currentSection.BPM = currentBPM;
+                currentPhrase.BPM = currentBPM;
             }
+
+            FixBars();
 
             CurrentSectionChanged();
         }
@@ -481,12 +495,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public void TappedNewPhrase() {
             if (currentMap == null) { Debug.LogError("Cannot start phrase before map was created!"); return; }
 
-            CloseCurrentSegment(currentPhrase, barInPhrase);
+            double time = CloseCurrentSegment(currentPhrase, barInPhrase);
 
-            currentPhrase = currentMap.songStructure.AddPhrase(currentSection, songAudio.TimePrecise);
+            currentPhrase = currentMap.songStructure.AddPhrase(currentSection, time);
 
             if (currentBPM > 1) {
-                currentPhrase.bpm = currentBPM;
+                currentPhrase.BPM = currentBPM;
             }
 
             currentSection.CalculateStartBarsForPhrases();
@@ -494,31 +508,49 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             CurrentPhraseChanged();
         }
 
-        private void CloseCurrentSegment(SongSegment segment, int barCount) {
-            string whatsTapped = "TappendNewSection";
-            if (segment is Phrase) {
-                whatsTapped = "TappendNewPhrase";
-            }
-            if (segment != null) {
-                segment.DurationSeconds = songAudio.TimePrecise - segment.StartTime;
-                if (barCount > 1) {
-                    segment.durationBars = barCount;
-                    secondsPerBar = segment.DurationSeconds / barCount;
-                    //Debug.LogFormat("{2} (barCount > 1) => durationBars = {0}, secondsPerBar = {1}", barCount, secondsPerBar, whatsTapped);
-                } else {
-                    segment.durationBars = Mathf.RoundToInt((float)(segment.DurationSeconds / secondsPerBar));
-                    if (segment.durationBars > 1) {
-                        //Debug.LogFormat("{2} (barCount == 1, secondsPerBar = {1}) => durationBars = {0}", barCount, secondsPerBar, whatsTapped);
-                    } else {
-                        segment.durationBars = 1;
-                        secondsPerBar = segment.DurationSeconds;
-                        Debug.LogFormat("{2} (barCount > 1 but segment too short for one bar) => durationBars = {0}, secondsPerBar = {1}", barCount, secondsPerBar, whatsTapped);
-                    }
+        private double CloseCurrentSegment(SongSegment segment, int barCount) {
+            double time = songAudio.TimePrecise;
+            bool canChangeDuration = segment is Phrase || ((Section)segment).phrases.Count == 1;
+
+            if (CurrentMap.songStructure.keepTempo) {
+                if (canChangeDuration) {
+                    double duration = time - segment.StartTime;
+                    barCount = Mathf.RoundToInt((float) (duration / segment.TimePerBar));
+                    duration = barCount * segment.TimePerBar;
+                    time = segment.StartTime + duration;
+                    Debug.LogFormat("Adjusted time: {0}; original time: {1}", time, songAudio.TimePrecise);
                 }
-                segment.beatsPerBar = currentBeatsPerBar;
-                segment.CalculateBPM();
-                currentBPM = segment.bpm;
             }
+
+            if (segment != null) {
+                if (canChangeDuration) {
+
+                    string whatsTapped = "TappendNewSection";
+                    if (segment is Phrase) {
+                        whatsTapped = "TappendNewPhrase";
+                    }
+
+                    segment.DurationSeconds = time - segment.StartTime;
+                    if (barCount > 1) {
+                        segment.DurationBars = barCount;
+                        secondsPerBar = segment.DurationSeconds / barCount;
+                        //Debug.LogFormat("{2} (barCount > 1) => durationBars = {0}, secondsPerBar = {1}", barCount, secondsPerBar, whatsTapped);
+                    } else {
+                        segment.DurationBars = Mathf.RoundToInt((float)(segment.DurationSeconds / secondsPerBar));
+                        if (segment.DurationBars > 1) {
+                            //Debug.LogFormat("{2} (barCount == 1, secondsPerBar = {1}) => durationBars = {0}", barCount, secondsPerBar, whatsTapped);
+                        } else {
+                            segment.DurationBars = 1;
+                            secondsPerBar = segment.DurationSeconds;
+                            Debug.LogFormat("{2} (barCount > 1 but segment too short for one bar) => durationBars = {0}, secondsPerBar = {1}", barCount, secondsPerBar, whatsTapped);
+                        }
+                    }
+                    segment.BeatsPerBar = currentBeatsPerBar;
+                    segment.CalculateBPM();
+                    currentBPM = segment.BPM;
+                }
+            }
+            return time;
         }
 
         private void CurrentPhraseChanged() {
@@ -536,14 +568,14 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
             barInSection++;
             if (CurrentSection != null) {
-                CurrentSection.durationBars = barInSection;
-                CurrentSection.CalculateBPM(songAudio.TimePrecise - CurrentSection.StartTime, barInSection - 1);
-                currentBPM = CurrentSection.bpm;
+                CurrentSection.DurationBars = barInSection;
+                CurrentSection.FirstPhrase.CalculateBPM(songAudio.TimePrecise - CurrentSection.StartTime, barInSection - 1);
+                currentBPM = CurrentSection.BPM;
             }
 
             barInPhrase++;
             if (CurrentPhrase != null) {
-                CurrentPhrase.durationBars = barInPhrase;
+                CurrentPhrase.DurationBars = barInPhrase;
                 CurrentPhrase.CalculateBPM(songAudio.TimePrecise - CurrentPhrase.StartTime, barInPhrase - 1);
             }
             beatInBar = 1;

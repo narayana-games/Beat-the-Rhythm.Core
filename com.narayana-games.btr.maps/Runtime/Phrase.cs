@@ -15,6 +15,7 @@
 #endregion Copyright and License Information
 
 using System;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps {
@@ -51,10 +52,133 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             name = "Phrase";
         }
 
-        public void CalculateBarsFromBPMandTimes(int barInSong) {
-            startBar = barInSong;
-            durationBars = Mathf.RoundToInt((float) (durationSeconds / TimePerBar));
+        /// <summary>The precise start time of this phrase.</summary>
+        public double startTime = 0;
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override double StartTime {
+            get { return startTime; }
+            set { startTime = value; }
         }
+
+        public override void SetStartTimeKeepEndTime(double newStartTime) {
+            double endTime = EndTime;
+            startTime = newStartTime;
+            durationSeconds = endTime - newStartTime;
+        }
+
+        public override void SetEndTimeKeepStartTime(double newEndTime) {
+            durationSeconds = newEndTime - StartTime;
+        }
+
+        /// <summary>The precise duration of this segment.</summary>
+        public double durationSeconds = 0;
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override double DurationSeconds {
+            get { return durationSeconds; }
+            set { durationSeconds = value; }
+        }
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override double EndTime {
+            get { return StartTime + DurationSeconds; }
+        }
+
+        /// <summary>The number of the first bar of this segment, in the song, starting at 1.</summary>
+        public int startBar = 0;
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override int StartBar {
+            get { return startBar; }
+            set { startBar = value; }
+        }
+
+
+        /// <summary>
+        ///     The number of bars this segment has. 
+        ///     For sections: Usually 4 or 8, but 12, 16 or even 32 is also possible.
+        ///     For phrases: Usually 4 or 8, but 1, 12, 16 or more is also possible.
+        /// </summary>
+        public int durationBars = 0;
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override int DurationBars {
+            get { return durationBars; }
+            set { durationBars = value; }
+        }
+
+
+        /// <summary>The numerator of the meter signature (N in N/4).</summary>
+        public int beatsPerBar = 4;
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override int BeatsPerBar {
+            get { return beatsPerBar; }
+            set { beatsPerBar = value; }
+        }
+
+        /// <summary>The denominator of the meter signature (N in 4/N).</summary>
+        public int beatUnit = 4;
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override int BeatUnit {
+            get { return beatUnit; }
+            set { beatUnit = value; }
+        }
+
+        /// <summary>Tempo of this phrase in BPM.</summary>
+        public double bpm = 120;
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public override double BPM {
+            get { return bpm; }
+            set { bpm = value; }
+        }
+
+
+        public override void CalculateBPM() {
+            CalculateBPM(DurationSeconds, DurationBars);
+        }
+
+        public void CalculateBPM(double seconds, double bars) {
+            double timePerBeat = seconds / (bars * beatsPerBar * 4.0 / beatUnit);
+            bpm = (60.0 / timePerBeat);
+        }
+
+        public void CalculateBarsFromBPMandDuration(int barInSong) {
+            startBar = barInSong;
+            DurationBars = Mathf.RoundToInt((float) (durationSeconds / TimePerBar));
+        }
+
+        public void CalculateSecondsFromBarsAndBPM() {
+            durationSeconds = durationBars * TimePerBar;
+        }
+
     }
 
 }

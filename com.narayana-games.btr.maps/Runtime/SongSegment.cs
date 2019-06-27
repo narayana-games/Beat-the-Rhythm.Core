@@ -35,109 +35,76 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             set { name = value; }
         }
 
-        /// <summary>The precise start time of this segment.</summary>
-        public double startTime = 0;
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public abstract double StartTime { get; set; }
 
 #if !UNITY_2017_4_OR_NEWER
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
 #endif
         [IgnoreDataMember]
-        public virtual double StartTime {
-            get { return startTime; }
-            set { startTime = value; }
-        }
-
-
-        public void SetStartTimeKeepEndTime(double newStartTime) {
-            double endTime = EndTime;
-            StartTime = newStartTime;
-            DurationSeconds = endTime - newStartTime;
-        }
-
-        public void SetEndTimeKeepStartTime(double newEndTime) {
-            DurationSeconds = newEndTime - StartTime;
-        }
-
-        /// <summary>The precise duration of this segment.</summary>
-        public double durationSeconds = 0;
+        public abstract double DurationSeconds { get; set; }
 
 #if !UNITY_2017_4_OR_NEWER
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
 #endif
         [IgnoreDataMember]
-        public virtual double DurationSeconds {
-            get { return durationSeconds; }
-            set { durationSeconds = value; }
-        }
+        public abstract double EndTime { get; }
+
+        public abstract void SetStartTimeKeepEndTime(double newStartTime);
+
+        public abstract void SetEndTimeKeepStartTime(double newEndTime);
+
+
+
 
 #if !UNITY_2017_4_OR_NEWER
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
 #endif
         [IgnoreDataMember]
-        public virtual double EndTime {
-            get { return StartTime + DurationSeconds; }
-        }
+        public abstract int StartBar { get; set; }
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public abstract int DurationBars { get; set; }
 
 
-        /// <summary>The number of the first bar of this segment, in the song, starting at 1.</summary>
-        public int startBar = 0;
 
-        /// <summary>
-        ///     The number of bars this segment has. 
-        ///     For sections: Usually 4 or 8, but 12, 16 or even 32 is also possible.
-        ///     For phrases: Usually 4 or 8, but 1, 12, 16 or more is also possible.
-        /// </summary>
-        public int durationBars = 0;
 
-        /// <summary>The numerator of the meter signature (N in N/4).</summary>
-        public int beatsPerBar = 4;
 
-        /// <summary>The denominator of the meter signature (N in 4/N).</summary>
-        public int beatUnit = 4;
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public abstract int BeatsPerBar { get; set; }
 
-        /// <summary>Tempo of this phrase in BPM.</summary>
-        public double bpm = 120;
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public abstract int BeatUnit { get; set; }
 
-        public virtual void CalculateBPM() {
-            CalculateBPM(DurationSeconds, durationBars);
-        }
 
-        public void CalculateBPM(double seconds, double bars) {
-            double timePerBeat = seconds / (bars * beatsPerBar * 4.0 / beatUnit);
-            bpm = (60.0 / timePerBeat);
-        }
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public abstract double BPM { get; set; }
 
-        public double TimePerBar {
-            get {
-                return TimePerBeat * beatsPerBar;
-            }
-        }
 
-        public double TimePerBeat {
-            get {
-                return 60.0 / bpm * 4.0 / beatUnit;
-            }
-        }
 
-        //public int CalculateBarCountFromBPM() {
+        public double TimePerBar { get { return TimePerBeat * BeatsPerBar; } }
 
-        //}
+        public double TimePerBeat { get { return 60.0 / BPM * 4.0 / BeatUnit; } }
 
-        public void CopyFrom(SongSegment other) {
-            this.Name = other.Name;
 
-            this.startTime = other.startTime;
-            this.durationSeconds = other.durationSeconds;
+        public abstract void CalculateBPM();
 
-            this.startBar = other.startBar;
-            this.durationBars = other.durationBars;
-
-            this.beatsPerBar = other.beatsPerBar;
-            this.beatUnit = other.beatUnit;
-
-            this.bpm = other.bpm;
-        }
-
+        
         public int CompareTo(object obj) {
             SongSegment other = obj as SongSegment;
             if (other == null) {

@@ -85,8 +85,116 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         #endregion Recording Meta Data
 
+        /// <summary>
+        ///     If false (default), changing the duration of a Phrase will change 
+        ///     its tempo. If true, the duration in seconds is defined by the
+        ///     duration in bars multiplied by the tempo. Only set to true if you
+        ///     know for sure that the start time and tempo are correct (e.g. 
+        ///     after import from a MIDI-file, or after careful review).
+        /// </summary>
+        public bool keepTempo = false;
+
         /// <summary>List of sections of this recording.</summary>
         public List<Section> sections = new List<Section>();
+
+        /// <summary>
+        ///     Iterates through all phrases and sections and fixes any existing
+        ///     inconsistencies. When keepTempo is true, this uses the durations
+        ///     in bars and bpm, if it is false, bpm are calculated from the 
+        ///     durations in seconds and number of bars. Assures that each
+        ///     phrase is at least one bar long.
+        /// </summary>
+        public void FixInconsistencies() {
+            List<Section> sectionsToDelete = new List<Section>();
+            List<Phrase> phrasesToDelete = new List<Phrase>();
+            List<Phrase> phrases = new List<Phrase>();
+            bool passedEndOfSong = false;
+
+            double lastTime = 0;
+            int lastBar = 1;
+
+            for (int sectionId = 0; sectionId < sections.Count; sectionId++) { 
+                Section section = sections[sectionId];
+                if (passedEndOfSong) {
+                    sectionsToDelete.Add(section);
+                    continue;
+                }
+                for (int phraseId=0; phraseId < section.phrases.Count; phraseId++) {
+                    Phrase phrase = section.phrases[phraseId];
+                    if (passedEndOfSong) {
+                        phrasesToDelete.Add(phrase);
+                        continue;
+                    }
+                    // remove / skip phrases that were assigned to multiple sections
+                    if (phrases.Contains(phrase)) {
+                        section.phrases.Remove(phrase);
+                        continue;
+                    }
+
+                    // fix start time and start bar
+                    phrase.StartTime = lastTime;
+                    phrase.StartBar = lastBar;
+
+                    Phrase nextPhrase = null;
+                    if (phraseId < section.phrases.Count) {
+                        nextPhrase = section.phrases[phraseId + 1];
+                    } else if (sectionId < sections.Count) {
+                        nextPhrase = sections[sectionId + 1].FirstPhrase;
+                    }
+                    if (nextPhrase != null) {
+                        if (keepTempo) {
+                            // use bars
+                        } else {
+                            // use seconds
+                        }
+                    }
+
+                    // fix duration or tempo
+                    if (keepTempo) {
+                        phrase.CalculateSecondsFromBarsAndBPM();
+                    } else {
+                        // it's more likely that bpm and duration is correct than that bars is correct
+                        phrase.CalculateBarsFromBPMandDuration(lastBar);
+
+                        //phrase.CalculateBPM(); // alternative logic
+                    }
+
+                    // make sure each phrase has at least one bar of duration
+                    if (phrase.DurationSeconds < phrase.TimePerBar) {
+                        phrase.DurationSeconds = phrase.TimePerBar;
+                        phrase.DurationBars = 1;
+                    }
+                    if (phrase.DurationBars < 1) {
+                        phrase.DurationBars = 1;
+                    }
+
+                    if (phrase.EndTime > durationSeconds) {
+                        passedEndOfSong = true;
+                        phrase.SetEndTimeKeepStartTime(durationSeconds);
+                    }
+
+                    // prepare for next round
+                    lastTime = phrase.EndTime;
+                    lastBar += phrase.DurationBars;
+                    phrases.Add(phrase);
+                }
+                if (passedEndOfSong) {
+                    foreach (Phrase phrase in phrasesToDelete) {
+                        section.phrases.Remove(phrase);
+                    }
+                }
+            }
+            if (passedEndOfSong) {
+                foreach (Section section in sectionsToDelete) {
+                    sections.Remove(section);
+                }
+            }
+
+            Phrase theLastPhrase = sections[sections.Count - 1].LastPhrase;
+            if (theLastPhrase.EndTime < durationSeconds) {
+                theLastPhrase.SetEndTimeKeepStartTime(durationSeconds);
+            }
+        }
 
         public void MoveToPrevSection(Phrase phrase) {
             if (!IsFirstPhraseInSection(phrase)) {
@@ -117,7 +225,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         private void MovePhrase(Phrase phrase, Section from, Section to) {
             from.phrases.Remove(phrase);
-            from.UpdateTimesFromPhrases();
+            //from.UpdateTimesFromPhrases();
 
             to.Consume(phrase);
 
@@ -130,7 +238,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             Section newSection = new Section();
             sections.Add(newSection);
             newSection.type = Section.Type.Break;
-            newSection.CopyFrom(phrase);
+            newSection.name = phrase.name;
             newSection.phrases.Clear();
             newSection.phrases.Add(phrase);
 
@@ -157,7 +265,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                 // a section in the middle => more trouble, now we'll have three sections
                 Section thirdSection = new Section();
                 sections.Add(thirdSection);
-                thirdSection.CopyFrom(oldParent);
+                thirdSection.name = oldParent.name;
                 thirdSection.phrases.Clear();
                 thirdSection.phrases.AddRange(oldParent.phrases);
                 thirdSection.type = oldParent.type;
@@ -168,9 +276,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                 thirdSection.phrases.RemoveRange(0, phraseIndex);
                 thirdSection.Name = thirdSection.phrases[0].Name;
                 thirdSection.SetStartTimeKeepEndTime(newSection.EndTime);
-                thirdSection.FixDurationBars();
+                //thirdSection.FixDurationBars();
             }
-            oldParent.FixDurationBars();
+            //oldParent.FixDurationBars();
 
             sections.Sort();
 
@@ -180,9 +288,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public void CalculateBarsFromBPMandTimes() {
             int barInSong = 1;
             foreach (Section section in sections) {
-                section.startBar = barInSong;
+                section.StartBar = barInSong;
                 section.CalculateBarsFromBPMandTimes(barInSong);
-                barInSong += section.durationBars;
+                barInSong += section.DurationBars;
             }
         }
 
