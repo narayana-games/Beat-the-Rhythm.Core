@@ -26,6 +26,8 @@ namespace NarayanaGames.Common.UtilityBehaviours {
 
         public static bool IsPaused { get; set; }
 
+        public static bool IsShowingDashboard { get; set; }
+        
         public static int SkipIntoSeconds { get; set; }
 
     }

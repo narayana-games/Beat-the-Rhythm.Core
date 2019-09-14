@@ -238,7 +238,7 @@ namespace NarayanaGames.Common.Audio {
         }
 
         private bool IsGamePaused {
-            get { return GlobalGameState.IsPaused; }
+            get { return GlobalGameState.IsPaused || GlobalGameState.IsShowingDashboard; }
         }
 
 
