@@ -16,10 +16,9 @@
 
 using System;
 using System.Collections.Generic;
-
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
 
-namespace NarayanaGames.BeatTheRhythm.Maps {
+namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
     /// <summary>
     ///     Represents a gameplay track of a song / recording. Usually, a MapContainer
@@ -28,13 +27,26 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     ///     map container.
     /// </summary>
     [Serializable]
-    public class Track {
+    public class GameplayTrack {
+        // => EffectTrack => to be designed ...
+        // => MelodyTrack => might be added at some point, currently no use case
+
+        /// <summary>
+        ///     The rhythm track that this gameplay track was built for. 
+        /// </summary>
+        public int rhythmTrackId;
+        
+        /// <summary>The difficulty of this full rhythm track.</summary>
+        public DifficultyPreset difficulty = DifficultyPreset.Casual;
+
+        /// <summary>Intended role of this track.</summary>
+        public TrackRole trackRole = TrackRole.SinglePlayer;
+        
+        /// <summary>Tracking / play style this track has been designed for.</summary>
+        public TrackedAppendages trackedAppendages = TrackedAppendages.TwoHands;
 
         /// <summary>Game mechanic that this track has been designed for.</summary>
         public GameMechanic gameMechanic = GameMechanic.Catchers;
-
-        /// <summary>Tracking / play style this track has been designed for.</summary>
-        public TrackedAppendages trackedAppendages = TrackedAppendages.TwoHands;
 
         /// <summary>Dominant hand this was designed for; locations will be mirrored when different from player</summary>
         public PickupType dominantHand = PickupType.Right;
@@ -42,12 +54,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
         public string name;
 
-        /// <summary>A list of phrase definition references.</summary>
-        public List<string> phraseContainerIds = null;
-
-        /// <summary>List of actual sequences; must match up with MapContainer.sections.phrases!</summary>
-        public List<Sequence> sequences = new List<Sequence>();
-
+        /// <summary>List of actual patterns. Can have less entries than RhythmTrack.sequences!</summary>
+        public List<GameplayPattern> patterns = new List<GameplayPattern>();
     }
-
 }

@@ -16,12 +16,14 @@
 
 using System;
 using System.Collections.Generic;
+using NarayanaGames.BeatTheRhythm.Maps.Structure;
+using NarayanaGames.BeatTheRhythm.Maps.Tracks;
 
 namespace NarayanaGames.BeatTheRhythm.Maps {
 
     /// <summary>
     ///     A container to store and transmit beatmap information. For storage
-    ///     and transmission irrelevant fields must be set to null.
+    ///     and transmission, irrelevant fields must be set to null.
     ///     MapContainers are general purpose and can contain only the section
     ///     layout of a song, the actual gameplay of a full song, the whole
     ///     arrangement for a multiplayer choreography, a snippet for a 
@@ -53,14 +55,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public string containerId = null;
 
         /// <summary>
-        ///     Owner, permissions and whether the item has been locked.
+        ///     Owner, authors, permissions and whether the item has been locked.
         /// </summary>
-        public Access access = new Access();
+        public Permissions permissions = new Permissions();
 
         /// <summary>
-        ///     External Song Structure; used to save without redudancy.
+        ///     External Song Structure; used to save without redundancy.
         /// </summary>
-        public string songStructureId = null;
+        public string songStructureContainerId = null;
 
         /// <summary>
         ///     Internal Song Structure; used to transmit data conveniently.
@@ -74,26 +76,26 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public List<string> trackContainerIds = null;
 
         /// <summary>List of actual tracks.</summary>
-        public List<Track> tracks = new List<Track>();
+        public List<RhythmTrack> tracks = new List<RhythmTrack>();
 
 
-        public Track AddTrack() {
-            Track newTrack = new Track();
-            tracks.Add(newTrack);
-            return newTrack;
+        public RhythmTrack AddTrack() {
+            RhythmTrack newRhythmTrack = new RhythmTrack();
+            tracks.Add(newRhythmTrack);
+            return newRhythmTrack;
         }
 
-        public Track FindTrack(int trackId) {
+        public RhythmTrack FindTrack(int trackId) {
             return tracks[trackId];
         }
 
-        public Sequence FindSequenceFor(Phrase phrase, Track track) {
+        public RhythmSequence FindSequenceFor(Phrase phrase, RhythmTrack rhythmTrack) {
             int phraseId = 0;
             for (int i = 0; i < songStructure.sections.Count; i++) {
                 for (int x = 0; x < songStructure.sections[i].phrases.Count; x++) {
                     if (songStructure.sections[i].phrases[x] == phrase) {
-                        if (track.sequences.Count > i) {
-                            return track.sequences[phraseId];
+                        if (rhythmTrack.sequences.Count > i) {
+                            return rhythmTrack.sequences[phraseId];
                         }
                     }
                     phraseId++;

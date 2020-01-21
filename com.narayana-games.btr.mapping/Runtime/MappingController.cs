@@ -15,11 +15,11 @@
 #endregion Copyright and License Information
 
 using UnityEngine;
-
-using NarayanaGames.BeatTheRhythm.Maps;
 using UnityEngine.Events;
 using NarayanaGames.Common.Audio;
-using System;
+using NarayanaGames.BeatTheRhythm.Maps;
+using NarayanaGames.BeatTheRhythm.Maps.Structure;
+using  NarayanaGames.BeatTheRhythm.Maps.Tracks;
 
 namespace NarayanaGames.BeatTheRhythm.Mapping {
 
@@ -136,8 +136,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             get { return currentPhrase; }
         }
 
-        private Track currentTrack;
-        private Sequence currentSequence;
+        private RhythmTrack CurrentRhythmTrack;
+        private RhythmSequence CurrentRhythmSequence;
 
         private int sectionInSong = 0; // starts at 0
         public int SectionInSong { get { return sectionInSong + 1; } }
@@ -357,7 +357,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
             currentSection = currentMap.songStructure.FindSectionAt(time);
             currentPhrase = currentMap.songStructure.FindPhraseAt(time);
-            currentPhrase.StartBar = 1;
+            currentPhrase.StartBar = 0;
             CurrentSectionChanged();
         }
 

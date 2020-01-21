@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NarayanaGames.Common.UtilityBehaviours;
 using System.Text;
-using NarayanaGames.BeatTheRhythm.Maps;
+using NarayanaGames.BeatTheRhythm.Maps.Structure;
 
 namespace NarayanaGames.Common.Audio {
     /// <summary>
@@ -475,7 +475,7 @@ namespace NarayanaGames.Common.Audio {
                 msg.AppendFormat("{0} did not successfully load all audio clips after {1:0.00} seconds", this.name, timePassed);
                 foreach (AudioSource src in individualTracks) {
                     if (src.clip.loadState != AudioDataLoadState.Loaded) {
-                        msg.AppendFormat("Failed to load audio source '{0}', clip '{1}', state: {3}", src.name, src.clip.name, src.clip.loadState).AppendLine();
+                        msg.AppendFormat("Failed to load audio source '{0}', clip '{1}', state: {2}", src.name, src.clip.name, src.clip.loadState).AppendLine();
                     } else {
                         msg.AppendFormat("Did successfully load audio source '{0}', clip '{1}', state: {2}", src.name, src.clip.name, src.clip.loadState).AppendLine();
                     }

@@ -16,13 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
 
-namespace NarayanaGames.BeatTheRhythm.Maps {
+namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
     /// <summary>
-    ///     Represents a musical and gameplay sequence, as explained in Wikipedia:
+    ///     Represents a rhythmic sequence, as explained in Wikipedia:
     ///     In music, a sequence is the restatement of a motif or longer melodic
     ///     (or harmonic) passage at a higher or lower pitch in the same voice.
     ///     See also: https://en.wikipedia.org/wiki/Sequence_(music)
@@ -30,19 +29,23 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     ///     Obviously, in our context, it's really a section of actual gameplay.
     /// </summary>
     [Serializable]
-    public class Sequence {
-        /// <summary>Game mechanic that this sequence has been designed for.</summary>
-        public GameMechanic gameMechanic = GameMechanic.Catchers;
+    public class RhythmSequence { 
 
-        /// <summary>Tracking / play style this sequence has been designed for.</summary>
-        public TrackedAppendages trackedAppendages = TrackedAppendages.TwoHands;
-
-        /// <summary>Dominant hand this sequence was designed for; locations will be mirrored when different from player</summary>
-        public PickupType dominantHand = PickupType.Right;
-
+        /// <summary>Links this sequence to its phrase in the song structure.</summary>
+        public int phraseId = 0;
+        
         /// <summary>The name of this sequence, usually the name of the phrase.</summary>
         public string name;
+        
+        /// <summary>The maximum difficulty that could be achieved with this rhythm sequence.</summary>
+        public DifficultyPreset difficulty = DifficultyPreset.Casual;
 
+        /// <summary>The rhythmic style of the whole track.</summary>
+        public RhythmStyle rhythmStyle = RhythmStyle.Mixed;
+
+        /// <summary>The instrument type of this track.</summary>
+        public InstrumentType instrumentType = InstrumentType.Mixed;
+        
         /// <summary>
         ///     Original tempo of this sequence in BPM. If different from the
         ///     sequence tempo, the timing of all events must be multiplied
@@ -50,10 +53,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// </summary>
         public float bpm = 120;
 
-        /// <summary>
-        ///     The events comprising this sequence.
-        /// </summary>
-        public List<NoteEvent> events = new List<NoteEvent>();
+        /// <summary>The events comprising this sequence.</summary>
+        public List<RhythmEvent> events = new List<RhythmEvent>();
     }
 
 }

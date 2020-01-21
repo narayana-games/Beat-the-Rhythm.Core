@@ -17,7 +17,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace NarayanaGames.BeatTheRhythm.Maps {
+namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
 
     /// <summary>
     ///     A song segment, either a Section or Phrase.

@@ -34,7 +34,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>
         ///     Redundant with Player.nickname. Stored here for sake of
         ///     simplicity and to be able to keep track of external authors
-        ///     that are not in our system.
+        ///     that are not in our system. For external authors, nickname
+        ///     and uniquePlayerId can be the same.
         /// </summary>
         public string nickname;
     }

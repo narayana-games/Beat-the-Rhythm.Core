@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace NarayanaGames.BeatTheRhythm.Maps {
+namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
 
     /// <summary>
     ///     Represents a musical section, as explained in Wikipedia:

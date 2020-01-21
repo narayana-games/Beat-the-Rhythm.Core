@@ -24,37 +24,51 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     ///     permissions and whether the item has been locked.
     /// </summary>
     [Serializable]
-    public class Access {
+    public class Permissions {
 
+        [Serializable]
+        public enum Visibility : int {
+            Authors,
+            Friends,
+            Public
+        }
+        
         /// <summary>
-        ///     Owner of this specific instance. This is the person that has
+        ///     Owner of this specific item. This is the person that has
         ///     created this version of the map. Ownership will only be
         ///     officially recognized upon map ranking when the author has
         ///     contributed at least 50% of the content of this map.
         /// </summary>
-        public Author owner = null;
+        public string ownerUniquePlayerId = null;
 
         /// <summary>
         ///     A list of all authors that have contributed to any part of
         ///     this map. This is included here so we only need the player ids
-        ///     in all nested levels.
+        ///     in all nested levels. This list must always include owner.
         /// </summary>
-        public List<Author> authors = new List<Author>();
+        public List<string> authorsUniquePlayerIds = new List<string>();
 
         /// <summary>
-        ///     Does the owner allow re-using the contents of this container?
+        ///     Who can see this item?
+        /// </summary>
+        public Visibility visibility = Visibility.Authors;
+        
+        /// <summary>
+        ///     Does the owner allow re-using the contents of this item?
         /// </summary>
         public bool ownerAllowsReuse = true;
 
         /// <summary>
-        ///     Does the owner allow modifying the contents of this container (only applies to new/copied instances)?
+        ///     Does the owner allow modifying the contents of this item
+        ///     (only applies to new/copied instances)?
         /// </summary>
         public bool ownerAllowsModding = true;
 
         /// <summary>
         ///     SongStructures and MapContainers must be locked before they can
         ///     be used to build gameplay (SongStructures), or record actual
-        ///     play sessions (MapContainers).
+        ///     play sessions (MapContainers). When an item has been locked,
+        ///     it cannot be unlocked, so use with care!
         /// </summary>
         public bool isLocked = false;
     }

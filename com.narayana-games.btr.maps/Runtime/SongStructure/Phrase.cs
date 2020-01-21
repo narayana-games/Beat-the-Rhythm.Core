@@ -18,7 +18,7 @@ using System;
 using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace NarayanaGames.BeatTheRhythm.Maps {
+namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
 
     /// <summary>
     ///     Represents a musical phrase or period, often a full section and in 
@@ -28,7 +28,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
     ///     e.g. because there are tempo changes within a section (e.g. a 
     ///     build-up that speeds up), it is recommended to subdivide a section 
     ///     into multiple phrases. Another reason to create phrases is when 
-    ///     there is one particularly difficult phrase within a longer section).
+    ///     there is one particularly difficult phrase within a longer section.
     ///     
     ///     As explained in Wikipedia:
     /// 
@@ -52,6 +52,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             name = "Phrase";
         }
 
+        /// <summary>A unique id for this phrase within the audio recording.</summary>
+        public int uniquePhraseId = 0;
+        
         /// <summary>The precise start time of this phrase.</summary>
         public double startTime = 0;
 
@@ -94,8 +97,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             get { return StartTime + DurationSeconds; }
         }
 
-        /// <summary>The number of the first bar of this segment, in the song, starting at 1.</summary>
-        public int startBar = 0;
+        /// <summary>
+        ///     The number of the first bar of this phrase, in the song,
+        ///     starting at 0 (-1 means unassigned).
+        /// </summary>
+        public int startBar = -1;
 
 #if !UNITY_2017_4_OR_NEWER
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
