@@ -7,7 +7,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
         HolodanceCustom,
         osu,
         StepMania,
-        HolodanceProcedural
+        HolodanceProcedural,
+        BSMG
     }
 
 }
