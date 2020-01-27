@@ -705,7 +705,7 @@ namespace NarayanaGames.Common.Audio {
         ///     Plays the clips of all AudioSources of this multitrack audio source.
         /// </summary>
         public void Play() {
-            Debug.LogFormat("Play was called, first audio clip: {0}", IndividualTracks[0].clip);
+            //Debug.LogFormat("Play was called, first audio clip: {0}", IndividualTracks[0].clip);
             if (IsValid) {
                 isStopped = false;
                 IsPaused = false;
