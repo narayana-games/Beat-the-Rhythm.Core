@@ -78,6 +78,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public float x = 0;
         public float y = 0;
         public float z = 0;
+        
+        public Vector3Int ToInt() {
+            Vector3Int result = new Vector3Int();
+            result.x = (int)Math.Round(x*3F);
+            result.y = (int)Math.Round(y*2F);
+            result.z = (int)Math.Round(z*3F);
+            return result;
+        }
     }
 
     [Serializable]
@@ -91,6 +99,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public int x = 0;
         public int y = 0;
         public int z = 0;
+
+        public Vector3Float ToFloat() {
+            Vector3Float result = new Vector3Float();
+            result.x = ((float)x) / 3F;
+            result.y = ((float)y) / 2F;
+            result.z = ((float)z) / 3F;
+            return result;
+        }
     }
     
 }
