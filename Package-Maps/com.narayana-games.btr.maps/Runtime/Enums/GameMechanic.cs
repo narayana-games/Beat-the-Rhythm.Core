@@ -1,6 +1,6 @@
 ﻿namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
 
-    [System.Serializable] // this is currently still part of another package
+    [System.Serializable]
     public enum GameMechanic : int {
         CatchersCasual = 0,
         Catchers = 1,
