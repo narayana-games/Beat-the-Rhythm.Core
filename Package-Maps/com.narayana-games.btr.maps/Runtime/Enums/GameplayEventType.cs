@@ -57,15 +57,25 @@
         ///     to force the player into a specific position. Rhythmically, these could be
         ///     placed as "off-beats", in other words, where the beat is not or should not
         ///     be, but in most cases, that's probably too much education and too little
-        ///     entertainment (read: it prolly ain't fun)!
+        ///     entertainment (read: it probably isn't fun)!
+        ///     Avoid notes trigger with hand weapons and head collider.
         /// </summary>
         Avoid = -1,
 
         /// <summary>
         ///     An obstacle that must be avoided, either by crouching, or by stepping to the side.
         ///     Theoretically, we could even have "jump obstacles" ... but for now ... not.
+        ///     Obstacles do not trigger with hand weapons, only with the head collider.
+        ///     Obstacles usually have a duration.
         /// </summary>
-        Obstacle = -2
+        Obstacle = -2,
+        
+        /// <summary>
+        ///     Like obstacle, but triggers with all colliders (head, hands, feet, if available).
+        ///     These can be used to force players into specific positions.
+        /// </summary>
+        ObstacleStrict = -3
+        
     }
     
 }
