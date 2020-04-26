@@ -23,8 +23,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
         PunchInplace = 2, // fists/feet/head
         Slice = 3,        // sword, laser blade; only hands
         ShootGun = 4,     // immediate reaction: bullets, lasers; only hands
-        ShootArrow = 5,   // delayed reaction, physics: archery/bow and arrow; requires both hands
-        ShootMagic = 6    // delayed reaction, can use left/right hands
+        ShootCharged = 5, // immediate reaction, but first needs to "charge" (like an energy gun)
+        ShootArrow = 6,   // delayed reaction, physics: archery/bow and arrow; requires both hands
+        ShootMagic = 7    // delayed reaction, needs charge, can use left/right hands
+        
+        // ShootCharged can also be used for "magic hands" - in that case,
+        // closing the hand charges, opening the hand hits immediately
+        
+        // all except ShootCharged and ShootArrow can handle held notes
     }
 
 }
