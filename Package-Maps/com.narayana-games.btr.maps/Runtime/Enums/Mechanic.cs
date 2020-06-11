@@ -19,8 +19,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
     public enum Mechanic : int {
         MultiMechanic = -1, // ADDED - used for tracks that have multiple mechanics
         Catch = 0,        // fist, only hands (because requires "catch" gesture)  
-        PunchFlying = 1,  // fists/feet/head => "classic"
-        PunchInplace = 2, // fists/feet/head
+        PunchKickFlying = 1,  // fists/feet/head => "classic" (punch)
+        PunchKickInplace = 2, // fists/feet/head (beat)
         Slice = 3,        // sword, laser blade; only hands
         ShootGun = 4,     // immediate reaction: bullets, lasers; only hands
         ShootCharged = 5, // immediate reaction, but first needs to "charge" (like an energy gun)
@@ -31,6 +31,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
         // closing the hand charges, opening the hand hits immediately
         
         // all except ShootCharged and ShootArrow can handle held notes
+
+        // only PunchKickFlying and PunchKickInplace work with feet => PunchKick
     }
 
 }

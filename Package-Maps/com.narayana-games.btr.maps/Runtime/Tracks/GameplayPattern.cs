@@ -30,7 +30,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public int phraseId = 0;
         
         /// <summary>Game mechanic that this sequence has been designed for.</summary>
-        public GameMechanic gameMechanic = GameMechanic.Catchers;
+        public Mechanic mechanic = Mechanic.PunchKickFlying;
 
         /// <summary>Tracking / play style this sequence has been designed for.</summary>
         public TrackedAppendages trackedAppendages = TrackedAppendages.TwoHands;

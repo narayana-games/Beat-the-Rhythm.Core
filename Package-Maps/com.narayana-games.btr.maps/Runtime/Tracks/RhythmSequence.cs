@@ -37,6 +37,21 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>The name of this sequence, usually the name of the phrase.</summary>
         public string name;
         
+        /// <summary>
+        ///     Dominant hand that this sequence was designed for; locations
+        ///     will be mirrored when different from player
+        /// </summary>
+        public PickupType dominantHand = PickupType.Right;
+
+        /// <summary>
+        ///     Mechanic on dominant hand that the rhythm for this sequence was recorded with.
+        /// </summary>
+        public Mechanic mechanicDominant = Mechanic.PunchKickFlying;
+        /// <summary>
+        ///     Mechanic on non-dominant hand that the rhythm for this sequence was recorded with.
+        /// </summary>
+        public Mechanic mechanicNonDominant = Mechanic.PunchKickFlying;
+        
         /// <summary>The maximum difficulty that could be achieved with this rhythm sequence.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
 
