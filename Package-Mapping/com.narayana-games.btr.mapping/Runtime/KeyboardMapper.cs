@@ -1,6 +1,6 @@
 ﻿#region Copyright and License Information
 /*
- * Copyright (c) 2015-2019 narayana games UG.  All Rights Reserved.
+ * Copyright (c) 2015-2020 narayana games UG.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
