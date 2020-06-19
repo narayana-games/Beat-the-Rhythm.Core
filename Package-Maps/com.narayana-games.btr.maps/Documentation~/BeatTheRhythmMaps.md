@@ -53,6 +53,11 @@ or if a section has segments that repeat, splitting the section into several phr
 can be preferable, in particular if those noticeable changes, or repetitions are 
 relevant for gameplay.
 
+In particular, a phrase can always only be played with one specific *weapon* (fists
+for punching, laserblades for slicing, guns or bow and arrow for shooting) in a given
+hand. So if one part of a *section* should be played with punching, and another with
+slicing, you will need to separate that *section* into two *phrases*.
+
 One technical reason why you may need phrases, or even every short phrases with just a 
 single bar, is when the tempo or time signature changes:
 
@@ -129,3 +134,36 @@ A nice little intro to time signatures:
 A good explanation of the most common time signatures is in the first answer to:
 [Which are the ~15 most common time signatures?](https://music.stackexchange.com/questions/14415/which-are-the-15-most-common-time-signatures)
 
+## Timing Tracks
+
+Timing tracks define the timings for all gameplay, in other words, when does gameplay occur.
+Timing tracks do not define any locations, weapons or handedness but can keep that 
+information for reference how the timings were recorded, and what kind of gameplay is
+likely to work with a given timing track.
+
+We separate timing tracks, which from gameplay events for a few reasons. Most importantly, 
+the exact same timings could be used for different mechanics but may require different positioning.
+
+For example, for shooting, two events in quick succession could be at the exact same 
+location but doing that for slicing would be very frustrating because the player may 
+accidentally slice the later event while trying to slice the earlier.
+
+One obvious solution in this case is positioning the later event to the left or right
+of the earlier, and have one on the upswing, the other on the downswing.
+
+Furthermore, the person authoring the gameplay could even decide to simply skip
+the later gameplay event. That way, the same timing track could even be used
+for different difficulties by not using all the timing events but only a subset.
+
+Another way to create gameplay tracks of different difficulties with the same timing
+track is by authoring the gameplay events comparatively close to each other for easier
+gameplay (stream-like gameplay) vs. taking them far apart (jumpy gameplay) for more
+challenging maps.
+
+## Gameplay Tracks
+
+Gameplay tracks define the actual gameplay, so in particular, which mechanic should be 
+used and which exact locations the events should occur at.
+
+We also have path-based gameplay (like the sliders in osu!), that is also defined in the
+gameplay tracks.
