@@ -15,6 +15,8 @@
 #endregion Copyright and License Information
 
 using System;
+using System.Collections.Generic;
+using NarayanaGames.BeatTheRhythm.Maps.Enums;
 
 namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
@@ -22,7 +24,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     ///     Represents a rhythmic event within a section.
     /// </summary>
     [Serializable]
-    public class RhythmEvent {
+    public class TimingEvent {
 
         /// <summary>
         ///     A unique id for this event within the sequence. The
@@ -31,9 +33,13 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     tracks have been created.
         /// </summary>
         public int uniqueEventId = 0;
+
+        /// <summary>
+        ///     List of hands/feet that this event was originally generated with.
+        /// </summary>
+        public List<PickupType> pickupHint = new List<PickupType>();
         
         #region Time Based
-        
         /// <summary>
         ///     Start time of this note event, relative to the beginning time
         ///     of the phrase/sequence. Like all times, this is in seconds.
@@ -45,12 +51,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
         /// <summary>Duration; only used for sustained notes.</summary>
         public double duration = 0;
-        
         #endregion Time Based
 
         
         #region Beat Based
-        
         /// <summary>Which bar in the section?</summary>
         public int startBarInPhrase = 0;
 
@@ -68,7 +72,6 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         
         /// <summary>How many sixteenths? Only for sustained notes.</summary>
         public int duration32ths = 0;
-
         #endregion Beat Based
 
     }

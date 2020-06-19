@@ -54,7 +54,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
         public string name;
 
-        /// <summary>List of actual patterns. Can have less entries than RhythmTrack.sequences!</summary>
+        /// <summary>List of actual patterns. Can have less entries than TimingTrack.sequences!</summary>
         public List<GameplayPattern> patterns = new List<GameplayPattern>();
     }
 }

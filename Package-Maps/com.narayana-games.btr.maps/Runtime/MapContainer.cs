@@ -76,26 +76,26 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public List<string> trackContainerIds = null;
 
         /// <summary>List of actual tracks.</summary>
-        public List<RhythmTrack> tracks = new List<RhythmTrack>();
+        public List<TimingTrack> tracks = new List<TimingTrack>();
 
 
-        public RhythmTrack AddTrack() {
-            RhythmTrack newRhythmTrack = new RhythmTrack();
-            tracks.Add(newRhythmTrack);
-            return newRhythmTrack;
+        public TimingTrack AddTrack() {
+            TimingTrack newTimingTrack = new TimingTrack();
+            tracks.Add(newTimingTrack);
+            return newTimingTrack;
         }
 
-        public RhythmTrack FindTrack(int trackId) {
+        public TimingTrack FindTrack(int trackId) {
             return tracks[trackId];
         }
 
-        public RhythmSequence FindSequenceFor(Phrase phrase, RhythmTrack rhythmTrack) {
+        public TimingSequence FindSequenceFor(Phrase phrase, TimingTrack timingTrack) {
             int phraseId = 0;
             for (int i = 0; i < songStructure.sections.Count; i++) {
                 for (int x = 0; x < songStructure.sections[i].phrases.Count; x++) {
                     if (songStructure.sections[i].phrases[x] == phrase) {
-                        if (rhythmTrack.sequences.Count > i) {
-                            return rhythmTrack.sequences[phraseId];
+                        if (timingTrack.sequences.Count > i) {
+                            return timingTrack.sequences[phraseId];
                         }
                     }
                     phraseId++;

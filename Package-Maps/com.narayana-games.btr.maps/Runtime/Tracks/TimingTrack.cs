@@ -27,7 +27,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     ///     map container.
     /// </summary>
     [Serializable]
-    public class RhythmTrack {
+    public class TimingTrack {
 
         public int uniqueRhythmTrackId = 0;
         
@@ -49,6 +49,6 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public string name;
 
         /// <summary>List of actual sequences. Can have less entries than MapContainer.sections.phrases!</summary>
-        public List<RhythmSequence> sequences = new List<RhythmSequence>();
+        public List<TimingSequence> sequences = new List<TimingSequence>();
     }
 }

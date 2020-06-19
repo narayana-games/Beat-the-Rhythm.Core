@@ -29,7 +29,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     ///     Obviously, in our context, it's really a section of actual gameplay.
     /// </summary>
     [Serializable]
-    public class RhythmSequence { 
+    public class TimingSequence { 
 
         /// <summary>Links this sequence to its phrase in the song structure.</summary>
         public int phraseId = 0;
@@ -69,7 +69,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public float bpm = 120;
 
         /// <summary>The events comprising this sequence.</summary>
-        public List<RhythmEvent> events = new List<RhythmEvent>();
+        public List<TimingEvent> events = new List<TimingEvent>();
     }
 
 }

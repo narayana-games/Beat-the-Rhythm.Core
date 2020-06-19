@@ -136,8 +136,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             get { return currentPhrase; }
         }
 
-        private RhythmTrack CurrentRhythmTrack;
-        private RhythmSequence CurrentRhythmSequence;
+        private TimingTrack currentTimingTrack;
+        private TimingSequence currentTimingSequence;
 
         private int sectionInSong = 0; // starts at 0
         public int SectionInSong { get { return sectionInSong + 1; } }
