@@ -30,16 +30,16 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public int phraseId = 0;
         
         /// <summary>Game mechanic that this sequence has been designed for.</summary>
-        public Mechanic mechanic = Mechanic.PunchKickFlying;
+        public WeaponInteraction mechanic = WeaponInteraction.PunchKickFlying;
 
         /// <summary>Tracking / play style this sequence has been designed for.</summary>
-        public TrackedAppendages trackedAppendages = TrackedAppendages.TwoHands;
+        public AppendageTracking trackedAppendages = AppendageTracking.TwoHands;
 
         /// <summary>
         ///     Dominant hand that this sequence was designed for; locations
         ///     will be mirrored when different from player
         /// </summary>
-        public PickupType dominantHand = PickupType.Right;
+        public Appendage dominantHand = Appendage.Right;
 
         /// <summary>The name of this pattern, usually the name of the phrase.</summary>
         public string name;

@@ -32,12 +32,12 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     on these ids, so not ever change them once additional
         ///     tracks have been created.
         /// </summary>
-        public int uniqueEventId = 0;
+        public int eventId = 0;
 
         /// <summary>
         ///     List of hands/feet that this event was originally generated with.
         /// </summary>
-        public List<PickupType> pickupHint = new List<PickupType>();
+        public List<Appendage> pickupHint = new List<Appendage>();
         
         #region Time Based
         /// <summary>

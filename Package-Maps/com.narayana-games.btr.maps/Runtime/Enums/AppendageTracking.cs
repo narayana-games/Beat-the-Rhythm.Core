@@ -1,7 +1,7 @@
 ﻿namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
 
     [System.Serializable]
-    public enum TrackedAppendages : int {
+    public enum AppendageTracking : int {
         SingleHand = 0,       // SH
         TwoHands = 1,         // TH
         HeadAndHands = 2,     // HAH

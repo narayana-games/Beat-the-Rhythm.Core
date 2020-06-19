@@ -53,7 +53,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         }
 
         /// <summary>A unique id for this phrase within the audio recording.</summary>
-        public int uniquePhraseId = 0;
+        public int phraseId = 0;
         
         /// <summary>The precise start time of this phrase.</summary>
         public double startTime = 0;

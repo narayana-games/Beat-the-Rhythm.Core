@@ -41,24 +41,24 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     Dominant hand that this sequence was designed for; locations
         ///     will be mirrored when different from player
         /// </summary>
-        public PickupType dominantHand = PickupType.Right;
+        public Appendage dominantHand = Appendage.Right;
 
         /// <summary>
-        ///     Mechanic on dominant hand that the rhythm for this sequence was recorded with.
+        ///     Weapon on dominant hand that the rhythm for this sequence was recorded with.
         /// </summary>
-        public Mechanic mechanicDominant = Mechanic.PunchKickFlying;
+        public WeaponType mechanicDominant = WeaponType.Catcher;
         /// <summary>
-        ///     Mechanic on non-dominant hand that the rhythm for this sequence was recorded with.
+        ///     Weapon on non-dominant hand that the rhythm for this sequence was recorded with.
         /// </summary>
-        public Mechanic mechanicNonDominant = Mechanic.PunchKickFlying;
+        public WeaponType mechanicNonDominant = WeaponType.Catcher;
         
         /// <summary>The maximum difficulty that could be achieved with this rhythm sequence.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
 
-        /// <summary>The rhythmic style of the whole track.</summary>
+        /// <summary>The rhythmic style of this sequence.</summary>
         public RhythmStyle rhythmStyle = RhythmStyle.Mixed;
 
-        /// <summary>The instrument type of this track.</summary>
+        /// <summary>The instrument type of this sequence.</summary>
         public InstrumentType instrumentType = InstrumentType.Mixed;
         
         /// <summary>

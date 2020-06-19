@@ -59,6 +59,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// </summary>
         public Permissions permissions = new Permissions();
 
+        
         /// <summary>
         ///     External Song Structure; used to save without redundancy.
         /// </summary>
@@ -70,23 +71,34 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// </summary>
         public SongStructure songStructure = new SongStructure();
 
+        
         /// <summary>
-        ///     A list of track definition references.
+        ///     A list of timing track definition references (external).
         /// </summary>
-        public List<string> trackContainerIds = null;
+        public List<string> timingTrackContainerIds = null;
 
-        /// <summary>List of actual tracks.</summary>
-        public List<TimingTrack> tracks = new List<TimingTrack>();
+        /// <summary>List of actual timing tracks (internal).</summary>
+        public List<TimingTrack> timingTracks = new List<TimingTrack>();
 
+        
+        /// <summary>
+        ///     A list of gameplay track definition references (external).
+        /// </summary>
+        public List<string> gameplayTrackContainerIds = null;
 
-        public TimingTrack AddTrack() {
+        /// <summary>List of actual gameplay tracks (internal).</summary>
+        public List<GameplayTrack> gameplayTracks = new List<GameplayTrack>();
+        
+
+        public TimingTrack AddTimingTrack() {
             TimingTrack newTimingTrack = new TimingTrack();
-            tracks.Add(newTimingTrack);
+            // create all the timing sequences based on the phrases
+            timingTracks.Add(newTimingTrack);
             return newTimingTrack;
         }
 
-        public TimingTrack FindTrack(int trackId) {
-            return tracks[trackId];
+        public TimingTrack FindTimingTrack(int trackId) {
+            return timingTracks[trackId];
         }
 
         public TimingSequence FindSequenceFor(Phrase phrase, TimingTrack timingTrack) {

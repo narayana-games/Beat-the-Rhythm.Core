@@ -36,11 +36,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     many rhythmic events for the difficulty you're working on,
         ///     or if you want a pattern that requires more time to be
         ///     more distributed), and you can also assign multiple gameplay
-        ///     events to a single rhythm event when they should arrive
+        ///     events to a single timing event when they should arrive
         ///     at the exact same time, e.g. one for left, one for right,
         ///     or even multiple for one hand. 
         /// </summary>
-        public int rhythmEventId = 0;
+        public int timingEventId = 0;
 
         /// <summary>
         ///     Normalized position with floating point coordinates from
@@ -61,13 +61,13 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public Vector3Int rasterPos;
         
         /// <summary>With which appendage.</summary>
-        public PickupType pickupWith = PickupType.Any;
+        public Appendage pickupWith = Appendage.Any;
 
         /// <summary>What is the mechanic of this event?</summary>
-        public GameplayEventType touchType = GameplayEventType.Orb;
+        public GameplayEventType eventType = GameplayEventType.Beat;
         
         /// <summary>
-        ///     Path for GameplayEventType.Arc (time is always from 0 to 1, actual
+        ///     Path for GameplayEventType.Trace (time is always from 0 to 1, actual
         ///     steps are interpolated based on the event duration).
         /// </summary>
         public List<PositionAtTime> path = new List<PositionAtTime>();
@@ -90,7 +90,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
     [Serializable]
     public class PositionAtTime {
+        /// <summary>Time between 0 and 1.</summary>
         public float time = 0;
+        /// <summary>Position relative to event pos/rasterPos.</summary>
         public Vector3Float position;
     }
     

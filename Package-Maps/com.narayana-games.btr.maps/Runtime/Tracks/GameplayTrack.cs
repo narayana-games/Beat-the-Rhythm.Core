@@ -31,10 +31,12 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         // => EffectTrack => to be designed ...
         // => MelodyTrack => might be added at some point, currently no use case
 
+        public int gameplayTrackId = 0;
+
         /// <summary>
-        ///     The rhythm track that this gameplay track was built for. 
+        ///     The timing track that this gameplay track was built for. 
         /// </summary>
-        public int rhythmTrackId;
+        public int timingTrackId;
         
         /// <summary>The difficulty of this full rhythm track.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
@@ -42,14 +44,17 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Intended role of this track.</summary>
         public TrackRole trackRole = TrackRole.SinglePlayer;
         
+        /// <summary>Multiple tracks can be grouped for multiplayer by giving them the same group name.</summary>
+        public string multiplayerGroup = "";
+        
         /// <summary>Tracking / play style this track has been designed for.</summary>
-        public TrackedAppendages trackedAppendages = TrackedAppendages.TwoHands;
+        public AppendageTracking trackedAppendages = AppendageTracking.TwoHands;
 
         /// <summary>Game mechanic that this track has been designed for.</summary>
-        public GameMechanic gameMechanic = GameMechanic.Catchers;
+        public WeaponType gameMechanic = WeaponType.Catcher;
 
         /// <summary>Dominant hand this was designed for; locations will be mirrored when different from player</summary>
-        public PickupType dominantHand = PickupType.Right;
+        public Appendage dominantHand = Appendage.Right;
 
         /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
         public string name;

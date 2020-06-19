@@ -29,7 +29,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     [Serializable]
     public class TimingTrack {
 
-        public int uniqueRhythmTrackId = 0;
+        public int timingTrackId = 0;
         
         /// <summary>The maximum difficulty that could be achieved with this full rhythm track.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
@@ -43,6 +43,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Intended role of this track.</summary>
         public TrackRole trackRole = TrackRole.SinglePlayer;
 
+        /// <summary>Multiple tracks can be grouped for multiplayer by giving them the same group name.</summary>
         public string multiplayerGroup = "";
         
         /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>

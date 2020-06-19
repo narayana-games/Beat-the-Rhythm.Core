@@ -16,7 +16,7 @@
 
 namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
 
-    public enum Mechanic : int {
+    public enum WeaponInteraction : int {
         MultiMechanic = -1, // ADDED - used for tracks that have multiple mechanics
         Catch = 0,        // fist, only hands (because requires "catch" gesture)  
         PunchKickFlying = 1,  // fists/feet/head => "classic" (punch)

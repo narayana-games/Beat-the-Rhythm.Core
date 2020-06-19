@@ -27,7 +27,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>
         ///     Links this obstacle to a rhythm event.
         /// </summary>
-        public int rhythmEventId = 0;
+        public int timingEventId = 0;
 
         /// <summary>The area covered at the beginning of this obstacle.</summary>
         public ObstacleArea areaBegin;

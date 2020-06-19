@@ -296,7 +296,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             int phraseId = 0;
             for (int s = 0; s < sections.Count; s++) {
                 for (int p = 0; p < sections[s].phrases.Count; p++) {
-                    sections[s].phrases[p].uniquePhraseId = phraseId++;
+                    sections[s].phrases[p].phraseId = phraseId++;
                 }
             }
         }
