@@ -2,6 +2,8 @@
 
 This repository was originally developed for and is used by our Virtual Reality rhythm games: [Beat the Rhythm](https://beat-the-rhythm-vr.com/), [Holodance](https://store.steampowered.com/app/422860/Holodance/) and our free beat mapping tool Beatographer (link pending). We share this core part of our rhythm game engine as open source with the community. If you plan to use it in your own projects, please make sure to read and fully understand the license. Also, it would be nice if you let us know.
 
+For documentation, make sure to read [STYLEGUIDE.md](https://github.com/narayana-games/Beat-the-Rhythm.Core/blob/master/STYLEGUIDE.md), and [Beat the Rhythm - Maps Format](https://github.com/narayana-games/Beat-the-Rhythm.Core/blob/master/Package-Maps/com.narayana-games.btr.maps/Documentation%7E/BeatTheRhythmMaps.md).
+
 # Licence
 
 The Beat the Rhythm core framework packages are licensed under the [Apache 2.0 License](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#fulltext) ([TL;DR summary](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)#summary)). The use of the framework is limited by an exception requiring specific attribution that applies to executable binary builds. See the files [LICENSE.md](https://github.com/narayana-games/Beat-the-Rhythm.Core/blob/master/LICENSE.md) and [NOTICE.md](https://github.com/narayana-games/Beat-the-Rhythm.Core/blob/master/NOTICE.md) for details. You may use the contents of this repository both in non-commercial and commercial projects as long as you properly include attribution:
