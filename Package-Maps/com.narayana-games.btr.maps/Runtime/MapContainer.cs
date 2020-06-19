@@ -92,7 +92,16 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         public TimingTrack AddTimingTrack() {
             TimingTrack newTimingTrack = new TimingTrack();
-            // create all the timing sequences based on the phrases
+            newTimingTrack.timingTrackId = timingTracks.Count;
+            newTimingTrack.name = $"Track {newTimingTrack.timingTrackId}";
+            foreach (Section section in songStructure.sections){
+                foreach (Phrase phrase in section.phrases){
+                    TimingSequence ts = new TimingSequence();
+                    ts.phraseId = phrase.phraseId;
+                    ts.name = phrase.name;
+                    newTimingTrack.sequences.Add(ts);
+                }
+            }
             timingTracks.Add(newTimingTrack);
             return newTimingTrack;
         }

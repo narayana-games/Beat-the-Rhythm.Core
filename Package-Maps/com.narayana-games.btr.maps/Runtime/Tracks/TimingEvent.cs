@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
+using NarayanaGames.BeatTheRhythm.Maps.Structure;
+using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
@@ -72,6 +74,39 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         
         /// <summary>How many sixteenths? Only for sustained notes.</summary>
         public int duration32ths = 0;
+        
+        // TODO: Handle triplets!!!
+
+        public void ConvertToBeatBased(Phrase phrase) {
+            double timeLeft = startTime;
+            
+            startBarInPhrase = (int) (timeLeft / phrase.TimePerBar);
+            timeLeft -= ((double)startBarInPhrase) * phrase.TimePerBar;
+
+            startBeatInBar = (int)(timeLeft / phrase.TimePerBeat);
+            timeLeft -= ((double)startBeatInBar) * phrase.TimePerBeat;
+
+            if (phrase.beatUnit != 8) {
+                start8thInBeat = (int)(timeLeft / phrase.TimePer8th);
+                timeLeft -= ((double)start8thInBeat) * phrase.TimePer8th;
+            } else {
+                Debug.LogWarning("phrase.beatUnit == 8 => might be trouble!!!");
+            }
+            
+            start16thIn8th = (int)(timeLeft / phrase.TimePer16th);
+            timeLeft -= ((double)start16thIn8th) * phrase.TimePer16th;
+
+            start32thIn16th = (int)(timeLeft / phrase.TimePer32th);
+            timeLeft -= ((double)start32thIn16th) * phrase.TimePer32th;
+            
+            // => if timeLeft "almost" another 32th => push it all up
+            
+            Debug.Log($"Event: {eventId:00} "
+                      +$"[Bar {startBarInPhrase} : {startBeatInBar}/{phrase.beatUnit} : "
+                      +$"{start8thInBeat}/8 : {start16thIn8th}/16 : {start32thIn16th}/32]"
+                      +$" - Time left: {timeLeft}  ");
+        }
+        
         #endregion Beat Based
 
     }

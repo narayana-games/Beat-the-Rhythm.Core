@@ -46,11 +46,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>
         ///     Weapon on dominant hand that the rhythm for this sequence was recorded with.
         /// </summary>
-        public WeaponType mechanicDominant = WeaponType.Catcher;
+        public WeaponType weaponDominant = WeaponType.Catcher;
         /// <summary>
         ///     Weapon on non-dominant hand that the rhythm for this sequence was recorded with.
         /// </summary>
-        public WeaponType mechanicNonDominant = WeaponType.Catcher;
+        public WeaponType weaponNonDominant = WeaponType.Catcher;
         
         /// <summary>The maximum difficulty that could be achieved with this rhythm sequence.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
@@ -66,7 +66,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     sequence tempo, the timing of all events must be multiplied
         ///     accordingly.
         /// </summary>
-        public float bpm = 120;
+        public double bpm = 120;
 
         /// <summary>The events comprising this sequence.</summary>
         public List<TimingEvent> events = new List<TimingEvent>();
