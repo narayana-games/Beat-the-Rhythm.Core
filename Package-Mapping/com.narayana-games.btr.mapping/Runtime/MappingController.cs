@@ -18,6 +18,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using NarayanaGames.Common.Audio;
 using NarayanaGames.BeatTheRhythm.Maps;
+using NarayanaGames.BeatTheRhythm.Maps.Enums;
 using NarayanaGames.BeatTheRhythm.Maps.Structure;
 using  NarayanaGames.BeatTheRhythm.Maps.Tracks;
 
@@ -137,7 +138,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         private TimingTrack currentTimingTrack;
+        public TimingTrack CurrentTimingTrack { get => currentTimingTrack; }
+        
         private TimingSequence currentTimingSequence;
+        public TimingSequence CurrentTimingSequence { get => currentTimingSequence; }
 
         private int sectionInSong = 0; // starts at 0
         public int SectionInSong { get { return sectionInSong + 1; } }
@@ -341,6 +345,17 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             SetupNewMap();
         }
 
+        public void SaveMap() {
+            if (currentMap == null) { Debug.LogError("Cannot save map before map was created!"); return; }
+
+            FixBars();
+
+            string json = JsonUtility.ToJson(currentMap, true);
+            using (System.IO.StreamWriter writer = System.IO.File.CreateText(currentMapPath)) {
+                writer.Write(json);
+            }
+        }
+
         private void FixBars() {
             int firstBar = 1;
             for (int i = 0; i < currentMap.songStructure.sections.Count; i++) {
@@ -361,17 +376,23 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             CurrentSectionChanged();
         }
 
-        public void SaveMap() {
-            if (currentMap == null) { Debug.LogError("Cannot save map before map was created!"); return; }
+        private Appendage currentDominantHand;
+        
+        public void StartTimingRecording(Appendage dominantHand) {
+            if (currentMap != null) {
+                if (currentMap.timingTracks.Count > 0) {
+                    currentTimingTrack = currentMap.timingTracks[0];
+                } else {
+                    currentTimingTrack = currentMap.AddTimingTrack();
+                }
 
-            FixBars();
-
-            string json = JsonUtility.ToJson(currentMap, true);
-            using (System.IO.StreamWriter writer = System.IO.File.CreateText(currentMapPath)) {
-                writer.Write(json);
+                currentDominantHand = dominantHand;
+                CheckSequenceChanged();
+            } else {
+                Debug.LogError("Can't Start Timing Recording when no Map is loaded!!!");
             }
         }
-
+        
         public void StartSongFromBeginning() {
             songAudio.TimePrecise = 0;
             if (!IsPlaying) {
@@ -488,6 +509,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             barInPhrase = 1;
             beatInBar = 1;
 
+            CheckSequenceChanged();
+            
             UpdateLoopedSegment();
             onSectionChanged.Invoke();
         }
@@ -557,10 +580,19 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             barInPhrase = 1;
             beatInBar = 1;
 
+            CheckSequenceChanged();
+
             UpdateLoopedSegment();
             onPhraseChanged.Invoke();
         }
 
+        private void CheckSequenceChanged() {
+            if (currentTimingTrack != null) {
+                currentTimingSequence = currentMap.FindSequenceFor(currentPhrase, currentTimingTrack);
+                currentTimingSequence.bpm = currentPhrase.bpm;
+            }
+        }
+        
         public void TappedNewBar() {
             if (beatInBar > 1) {
                 currentBeatsPerBar = beatInBar;
@@ -587,6 +619,83 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             onChanged.Invoke();
         }
 
+        private TimingEvent lastTimingEvent = null;
+        private double lastImpactTime = 0;
+        private WeaponType lastWeapon = WeaponType.CatcherCasual;
+        private double minDistanceLeft = 1F;
+        private double minDistanceRight = 1F;
+
+        // Minimum Times:
+        //
+        // [Laserblade] Current time: 0.223990929705217, minimum time left: 0.0213378684807246, right: 0.0746712018140592
+        // [Laserblade] Current time: 0.202675736961446, minimum time left: 0.0213378684807246, right: 0
+        // [Laserblade] Current time: 0.149319727891154, minimum time left: 0.0106575963718711, right: 0.0960090702947838
+        // Laserblade: 0.02 => 0.01
+        //
+        // [Catcher] Current time: 0.44800453514739, minimum time left: 0.117346938775512, right: 0.117346938775512
+        // [Catcher] Current time: 0.224013605442181, minimum time left: 0.117346938775512, right: 0.128004535147383
+        // Catcher: 0.11
+        //
+        // [Gun] Current time: 0.202675736961453, minimum time left: 0.0533333333333275, right: 0.0106802721088428
+        // [Gun] Current time: 0.170657596371882, minimum time left: 0.159999999999997,  right: 0.149342403628118
+        // Gun: 0.01 => 0.15
+        //
+        // [BowAndArrow] Current time: 0.554648526077099, minimum time left: 0.52267573696145, right: 1
+        // BowAndArrow: 0.52 => probably 0.5
+        
+        public void TappedImpact(Appendage pickedUpWith, WeaponType weapon) {
+            double impactTime = songAudio.TimePrecise;
+            double distance = impactTime - lastImpactTime;
+
+            if (weapon != lastWeapon) {
+                minDistanceLeft = 1F;
+                minDistanceRight = 1F;
+                Debug.Log($"Changed weapon from {lastWeapon} to {weapon}, resetting min times!");
+                lastWeapon = weapon;
+            }
+
+            if (distance > 0) {
+                switch (pickedUpWith) {
+                    case Appendage.Left:
+                        minDistanceLeft = System.Math.Min(minDistanceLeft, distance);
+                        break;
+                    case Appendage.Right:
+                        minDistanceRight = System.Math.Min(minDistanceRight, distance);
+                        break;
+                }
+                Debug.Log($"[{weapon}] Current time: {distance}, minimum time left: {minDistanceLeft}, right: {minDistanceRight}");
+            } else {
+                Debug.LogError($"[{weapon}] Current time: {distance} - ZERO!?!?, minimum time left: {minDistanceLeft}, right: {minDistanceRight}");
+            }
+
+            if (lastTimingEvent != null && (distance) < 0.05F) {
+                lastTimingEvent.pickupHint.Add(pickedUpWith);
+                return;
+            }
+
+            lastImpactTime = impactTime;
+            
+            TimingEvent timingEvent = new TimingEvent();
+            timingEvent.eventId = currentTimingSequence.events.Count;
+            timingEvent.startTime = impactTime - CurrentPhrase.StartTime;
+            timingEvent.ConvertToBeatBased(CurrentPhrase);
+            timingEvent.pickupHint.Add(pickedUpWith);
+            
+            currentTimingSequence.events.Add(timingEvent);
+            currentTimingSequence.dominantHand = currentDominantHand;
+
+            if (currentTimingSequence.dominantHand == pickedUpWith) {
+                currentTimingSequence.weaponDominant = weapon;
+            } else {
+                currentTimingSequence.weaponNonDominant = weapon;
+            }
+            
+            if (songAudio != null && CurrentSection != null) {
+                Debug.Log($"Tapped Impact at: {songAudio.TimePrecise} / {songAudio.TimePrecise - CurrentSection.StartTime}");
+            } else {
+                Debug.LogWarning("Audio is not playing, yet");
+            }
+        }
 
         // for looping, see: https://docs.unity3d.com/ScriptReference/AudioSource.PlayScheduled.html
 
