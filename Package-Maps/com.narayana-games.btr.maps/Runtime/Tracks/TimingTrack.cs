@@ -31,6 +31,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
         public int timingTrackId = 0;
         
+        /// <summary>Owner, permissions and whether the item has been locked.</summary>
+        public Permissions permissions = new Permissions();
+        
         /// <summary>The maximum difficulty that could be achieved with this full rhythm track.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
 

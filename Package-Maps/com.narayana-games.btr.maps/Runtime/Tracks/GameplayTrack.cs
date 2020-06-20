@@ -33,6 +33,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
         public int gameplayTrackId = 0;
 
+        /// <summary>Owner, permissions and whether the item has been locked.</summary>
+        public Permissions permissions = new Permissions();
+        
         /// <summary>
         ///     The timing track that this gameplay track was built for. 
         /// </summary>

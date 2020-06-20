@@ -54,9 +54,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// </summary>
         public string containerId = null;
 
-        /// <summary>
-        ///     Owner, authors, permissions and whether the item has been locked.
-        /// </summary>
+        /// <summary>Owner, permissions and whether the item has been locked.</summary>
         public Permissions permissions = new Permissions();
 
         

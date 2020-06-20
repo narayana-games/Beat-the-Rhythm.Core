@@ -45,14 +45,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         /// </summary>
         public int version = 0;
 
-        /// <summary>
-        ///     The unique id of this song structure.
-        /// </summary>
+        /// <summary>The unique id of this song structure.</summary>
         public string songStructureId = null;
 
-        /// <summary>
-        ///     Owner, permissions and whether the item has been locked.
-        /// </summary>
+        /// <summary>Owner, permissions and whether the item has been locked.</summary>
         public Permissions permissions = new Permissions();
 
         #region Recording Meta Data
@@ -344,6 +340,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             return FindSegmentAt(section.phrases, timeInSong);
         }
 
+        public Phrase FindPhraseAfter(Phrase phrase) {
+            return FindPhraseAt(phrase.EndTime + 0.001F);
+        }
+        
         public Section FindSectionAfter(double timeInSong) {
             return FindSegmentAfter(sections, timeInSong);
         }

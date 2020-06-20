@@ -50,6 +50,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public string keyNewPhrase = "s";
         public string keyNewBar = "d";
         public string keyNewBeat = "f";
+        public string keyNewTimingEvent = "y";
 
         public void Update() {
             if (controller.IsPaused) {
@@ -81,6 +82,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     controller.TappedNewBar();
                 } else if (Input.GetKeyDown(keyNewBeat)) {
                     controller.TappedNewBeat();
+                } else if (Input.GetKeyDown(keyNewTimingEvent)) {
+                    controller.TappedImpact();
                 }
             }
         }
