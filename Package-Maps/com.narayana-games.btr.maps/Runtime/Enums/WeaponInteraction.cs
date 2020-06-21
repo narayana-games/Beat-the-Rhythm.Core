@@ -27,6 +27,13 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Enums {
         ShootArrow = 6,   // delayed reaction, physics: archery/bow and arrow; requires both hands
         ShootMagic = 7    // delayed reaction, needs charge, can use left/right hands
         
+        // All weapon interaction determine one specific weapon type:
+        // Catch, PunchKickFlying, PunchKickInplace => Catcher
+        // Slice => Laserblade
+        // ShootGun, ShootCharged => Gun (ShootCharged also works without gun!)
+        // ShootArrow => BowAndArrow
+        // ShootMagic => no weapon, just bare hands!
+        
         // ShootCharged can also be used for "magic hands" - in that case,
         // closing the hand charges, opening the hand hits immediately
         

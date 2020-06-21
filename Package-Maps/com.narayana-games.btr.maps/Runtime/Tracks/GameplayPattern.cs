@@ -26,31 +26,36 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     [Serializable]
     public class GameplayPattern { 
 
-        /// <summary>Links this pattern to its phrase in the song structure.</summary>
-        public int phraseId = 0;
+        /// <summary>Globally unique ID that gameplay and other tracks can refer to.</summary>
+        public string gameplayPatternId = null;
         
-        /// <summary>Game mechanic that this sequence has been designed for.</summary>
-        public WeaponInteraction mechanic = WeaponInteraction.PunchKickFlying;
+        /// <summary>The name of this pattern, usually the name of the phrase.</summary>
+        public string name;
 
-        /// <summary>Tracking / play style this sequence has been designed for.</summary>
+        
+        /// <summary>The timing sequence that this gameplay pattern was built for.</summary>
+        public string timingSequenceId = null;
+        
+        /// <summary>The difficulty of this gameplay pattern.</summary>
+        public DifficultyPreset difficulty = DifficultyPreset.Casual;
+        
+        /// <summary>Tracking / play style this pattern has been designed for.</summary>
         public AppendageTracking trackedAppendages = AppendageTracking.TwoHands;
 
         /// <summary>
-        ///     Dominant hand that this sequence was designed for; locations
+        ///     Dominant hand that this pattern was designed for; locations
         ///     will be mirrored when different from player
         /// </summary>
         public Appendage dominantHand = Appendage.Right;
 
-        /// <summary>The name of this pattern, usually the name of the phrase.</summary>
-        public string name;
+        /// <summary>Weapon interaction on dominant hand that this pattern was designed for.</summary>
+        public WeaponInteraction weaponInteractionDominant = WeaponInteraction.PunchKickFlying;
+        
+        /// <summary>Weapon interaction on non-dominant hand that this pattern was designed for.</summary>
+        public WeaponInteraction weaponInteractionNonDominant = WeaponInteraction.PunchKickFlying;
 
         /// <summary>
-        ///     Original tempo of this sequence in BPM. If different from the
-        ///     sequence tempo, the timing of all events must be multiplied
-        ///     accordingly.
         /// </summary>
-        public float bpm = 120;
-
         /// <summary>The events comprising this pattern.</summary>
         public List<GameplayEvent> events = new List<GameplayEvent>();
         

@@ -31,17 +31,21 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         // => EffectTrack => to be designed ...
         // => MelodyTrack => might be added at some point, currently no use case
 
-        public int gameplayTrackId = 0;
+        /// <summary>Globally unique ID that leaderboards can refer to.</summary>
+        public string gameplayTrackId = null;
+
+        /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
+        public string name;
 
         /// <summary>Owner, permissions and whether the item has been locked.</summary>
         public Permissions permissions = new Permissions();
         
-        /// <summary>
-        ///     The timing track that this gameplay track was built for. 
-        /// </summary>
-        public int timingTrackId;
         
-        /// <summary>The difficulty of this full rhythm track.</summary>
+        /// <summary>The timing track that this gameplay track was built for.</summary>
+        public string timingTrackId = null;
+        
+        
+        /// <summary>The difficulty of this full gameplay track.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
 
         /// <summary>Intended role of this track.</summary>
@@ -53,16 +57,38 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Tracking / play style this track has been designed for.</summary>
         public AppendageTracking trackedAppendages = AppendageTracking.TwoHands;
 
-        /// <summary>Game mechanic that this track has been designed for.</summary>
-        public WeaponType gameMechanic = WeaponType.Catcher;
-
-        /// <summary>Dominant hand this was designed for; locations will be mirrored when different from player</summary>
+        /// <summary>
+        ///     Dominant hand that this whole track was designed for; locations
+        ///     will be mirrored when different from player
+        /// </summary>
         public Appendage dominantHand = Appendage.Right;
 
-        /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
-        public string name;
-
+        /// <summary>Weapon on dominant hand that this whole track was designed for.</summary>
+        public WeaponType weaponDominant = WeaponType.MultiMechanic;
+        
+        /// <summary>Weapon on non-dominant hand that this whole track was designed for.</summary>
+        public WeaponType weaponNonDominant = WeaponType.MultiMechanic;
+        
         /// <summary>List of actual patterns. Can have less entries than TimingTrack.sequences!</summary>
         public List<GameplayPattern> patterns = new List<GameplayPattern>();
+        
+        /// <summary>Links phrases to patterns, index in list must match phraseId!</summary>
+        public List<string> phrasesToPatternIds = new List<string>();
+        
+        private Dictionary<string, GameplayPattern> patternLookup = new Dictionary<string, GameplayPattern>();
+
+        public GameplayPattern PatternForPhrase(int phraseId) {
+            if (patternLookup.Count == 0) {
+                UpdateLookup();
+            }
+            return patternLookup[phrasesToPatternIds[phraseId]];
+        }
+        
+        public void UpdateLookup() {
+            patternLookup.Clear();
+            foreach (GameplayPattern pattern in patterns) {
+                patternLookup[pattern.gameplayPatternId] = pattern;
+            }
+        }
     }
 }

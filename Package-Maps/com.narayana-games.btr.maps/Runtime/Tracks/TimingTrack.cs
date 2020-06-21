@@ -29,7 +29,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     [Serializable]
     public class TimingTrack {
 
-        public int timingTrackId = 0;
+        /// <summary>Globally unique ID that gameplay and other tracks can refer to.</summary>
+        public string timingTrackId = null;
+
+        /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
+        public string name;
         
         /// <summary>Owner, permissions and whether the item has been locked.</summary>
         public Permissions permissions = new Permissions();
@@ -49,10 +53,28 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Multiple tracks can be grouped for multiplayer by giving them the same group name.</summary>
         public string multiplayerGroup = "";
         
-        /// <summary>The name of this track. This could be be the role in a multiplayer ensemble.</summary>
-        public string name;
-
-        /// <summary>List of actual sequences. Can have less entries than MapContainer.sections.phrases!</summary>
+        /// <summary>List of actual sequences, order is irrelevant.</summary>
         public List<TimingSequence> sequences = new List<TimingSequence>();
+        
+        /// <summary>Links phrases to sequences, index in list must match phraseId!</summary>
+        public List<string> phrasesToSequenceIds = new List<string>();
+        
+        private Dictionary<string, TimingSequence> sequenceLookup = new Dictionary<string, TimingSequence>();
+        
+
+        public TimingSequence PatternForPhrase(int phraseId) {
+            if (sequenceLookup.Count == 0) {
+                UpdateLookup();
+            }
+            return sequenceLookup[phrasesToSequenceIds[phraseId]];
+        }
+        
+        public void UpdateLookup() {
+            sequenceLookup.Clear();
+            foreach (TimingSequence sequence in sequences) {
+                sequenceLookup[sequence.timingSequenceId] = sequence;
+            }
+        }
+        
     }
 }

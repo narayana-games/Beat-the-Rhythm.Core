@@ -31,28 +31,13 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     [Serializable]
     public class TimingSequence { 
 
-        /// <summary>Links this sequence to its phrase in the song structure.</summary>
-        public int phraseId = 0;
+        /// <summary>Globally unique ID that gameplay and other tracks can refer to.</summary>
+        public string timingSequenceId = null;
         
         /// <summary>The name of this sequence, usually the name of the phrase.</summary>
         public string name;
         
-        /// <summary>
-        ///     Dominant hand that this sequence was designed for; locations
-        ///     will be mirrored when different from player
-        /// </summary>
-        public Appendage dominantHand = Appendage.Right;
-
-        /// <summary>
-        ///     Weapon on dominant hand that the rhythm for this sequence was recorded with.
-        /// </summary>
-        public WeaponType weaponDominant = WeaponType.Catcher;
-        /// <summary>
-        ///     Weapon on non-dominant hand that the rhythm for this sequence was recorded with.
-        /// </summary>
-        public WeaponType weaponNonDominant = WeaponType.Catcher;
-        
-        /// <summary>The maximum difficulty that could be achieved with this rhythm sequence.</summary>
+        /// <summary>The rhythmic difficulty of this rhythm sequence.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
 
         /// <summary>The rhythmic style of this sequence.</summary>
@@ -61,14 +46,22 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>The instrument type of this sequence.</summary>
         public InstrumentType instrumentType = InstrumentType.Mixed;
         
-        /// <summary>
-        ///     Original tempo of this sequence in BPM. If different from the
-        ///     sequence tempo, the timing of all events must be multiplied
-        ///     accordingly.
-        /// </summary>
+        /// <summary>The numerator of the meter signature (N in N/4).</summary>
+        public int beatsPerBar = 4;
+
+        /// <summary>The denominator of the meter signature (N in 4/N).</summary>
+        public int beatUnit = 4;
+        
+        /// <summary>The number of bars that this sequence has.</summary>
+        public int durationBars = 0;
+        
+        /// <summary>Original tempo of this sequence in BPM.</summary>
         public double bpm = 120;
 
-        /// <summary>The events comprising this sequence.</summary>
+        /// <summary>Original duration of this sequence.</summary>
+        public double durationSeconds = 0;
+        
+        /// <summary>The timing events comprising this sequence.</summary>
         public List<TimingEvent> events = new List<TimingEvent>();
     }
 

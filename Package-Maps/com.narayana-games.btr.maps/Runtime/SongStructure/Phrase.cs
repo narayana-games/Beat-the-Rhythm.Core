@@ -28,7 +28,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
     ///     e.g. because there are tempo changes within a section (e.g. a 
     ///     build-up that speeds up), it is recommended to subdivide a section 
     ///     into multiple phrases. Another reason to create phrases is when 
-    ///     there is one particularly difficult phrase within a longer section.
+    ///     there is one particularly difficult phrase within a longer section,
+    ///     or when the weapon should be changed within a section.
     ///     
     ///     As explained in Wikipedia:
     /// 
@@ -52,7 +53,15 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             name = "Phrase";
         }
 
-        /// <summary>A unique id for this phrase within the audio recording.</summary>
+        /// <summary>
+        ///     A local id for this phrase within the audio recording.
+        ///     This is used by TimingSequence, GameplayPattern and
+        ///     others to refer to a specific phrase in the song. We
+        ///     use int instead of string/Guid for simplicity here,
+        ///     and because phrases can not be reused across different
+        ///     songs. Also, this id is the index e.g. for
+        ///     TimingTrack.phraseToSequenceId.
+        /// </summary>
         public int phraseId = 0;
         
         /// <summary>The precise start time of this phrase.</summary>

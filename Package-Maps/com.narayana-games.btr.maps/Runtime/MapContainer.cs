@@ -50,7 +50,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         /// <summary>
         ///     The unique id of this container. This can be used to create
-        ///     references and composite maps from building blocks.
+        ///     references and composite maps from building blocks. If the
+        ///     container has a single element (e.g. a TimingTrack, or even
+        ///     just a GameplaySequence, the containerId is the id of that
+        ///     object).
         /// </summary>
         public string containerId = null;
 
@@ -61,7 +64,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>
         ///     External Song Structure; used to save without redundancy.
         /// </summary>
-        public string songStructureContainerId = null;
+        public string songStructureId = null;
 
         /// <summary>
         ///     Internal Song Structure; used to transmit data conveniently.
@@ -73,7 +76,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>
         ///     A list of timing track definition references (external).
         /// </summary>
-        public List<string> timingTrackContainerIds = null;
+        public List<string> timingTrackIds = null;
 
         /// <summary>List of actual timing tracks (internal).</summary>
         public List<TimingTrack> timingTracks = new List<TimingTrack>();
@@ -82,7 +85,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         /// <summary>
         ///     A list of gameplay track definition references (external).
         /// </summary>
-        public List<string> gameplayTrackContainerIds = null;
+        public List<string> gameplayTrackIds = null;
 
         /// <summary>List of actual gameplay tracks (internal).</summary>
         public List<GameplayTrack> gameplayTracks = new List<GameplayTrack>();
@@ -90,17 +93,43 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
         public TimingTrack AddTimingTrack() {
             TimingTrack newTimingTrack = new TimingTrack();
-            newTimingTrack.timingTrackId = timingTracks.Count;
-            newTimingTrack.name = $"Track {newTimingTrack.timingTrackId}";
+            newTimingTrack.timingTrackId = Guid.NewGuid().ToString();
+            newTimingTrack.name = $"Track {timingTracks.Count}";
+            
+            GameplayTrack newGameplayTrack = new GameplayTrack();
+            newGameplayTrack.gameplayTrackId = Guid.NewGuid().ToString();
+            newGameplayTrack.name = $"Default Gameplay for {newTimingTrack.name}";
+            newGameplayTrack.timingTrackId = newTimingTrack.timingTrackId;
+            
             foreach (Section section in songStructure.sections){
                 foreach (Phrase phrase in section.phrases){
                     TimingSequence ts = new TimingSequence();
-                    ts.phraseId = phrase.phraseId;
+                    ts.timingSequenceId = Guid.NewGuid().ToString();
                     ts.name = phrase.name;
+                    ts.beatsPerBar = phrase.beatsPerBar;
+                    ts.beatUnit = phrase.beatUnit;
+                    ts.durationBars = phrase.durationBars;
+                    ts.bpm = phrase.bpm;
+                    ts.durationSeconds = phrase.durationSeconds;
                     newTimingTrack.sequences.Add(ts);
+                    newTimingTrack.phrasesToSequenceIds.Add(ts.timingSequenceId);
+                    
+                    GameplayPattern pt = new GameplayPattern();
+                    pt.gameplayPatternId = Guid.NewGuid().ToString();
+                    pt.name = phrase.name;
+                    pt.timingSequenceId = ts.timingSequenceId;
+                    
+                    newGameplayTrack.patterns.Add(pt);
+                    newGameplayTrack.phrasesToPatternIds.Add(pt.gameplayPatternId);
                 }
             }
+            
+            newTimingTrack.UpdateLookup();
+            newGameplayTrack.UpdateLookup();
+            
             timingTracks.Add(newTimingTrack);
+            gameplayTracks.Add(newGameplayTrack);
+            
             return newTimingTrack;
         }
 

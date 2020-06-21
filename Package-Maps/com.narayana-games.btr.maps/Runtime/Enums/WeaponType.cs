@@ -2,6 +2,7 @@
 
     [System.Serializable]
     public enum WeaponType : int {
+        MultiMechanic = -1,
         CatcherCasual = 0,
         Catcher = 1,
         Laserblade = 2, 
