@@ -55,7 +55,13 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public WeaponInteraction weaponInteractionNonDominant = WeaponInteraction.PunchKickFlying;
 
         /// <summary>
+        ///     Weapon changes are only allowed before, and after the events
+        ///     in a pattern. If a weapon change event is given after the
+        ///     events, the actual weapon may be overriden by the following
+        ///     pattern.
         /// </summary>
+        public List<GameplayChangeWeapon> weaponChanges = new List<GameplayChangeWeapon>();
+        
         /// <summary>The events comprising this pattern.</summary>
         public List<GameplayEvent> events = new List<GameplayEvent>();
         
