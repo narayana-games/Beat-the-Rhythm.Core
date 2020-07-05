@@ -69,7 +69,20 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Weapon on non-dominant hand that this whole track was designed for.</summary>
         public WeaponType weaponNonDominant = WeaponType.MultiMechanic;
         
-        /// <summary>List of actual patterns. Can have less entries than TimingTrack.sequences!</summary>
+        /// <summary>
+        ///     The default target for this pattern.
+        ///     A unique string that defines which prefab should be used.
+        ///     The lookup order is: In the folder where the beatmap resides
+        ///     (so a beatmap can override the default target prefabs),
+        ///     in the active target mod folder (so mods can override the
+        ///     targets) and finally, in the default game folder. 
+        /// </summary>
+        public string targetPrefab = string.Empty;
+        
+        /// <summary>
+        ///     List of actual patterns. Can have less or more entries than TimingTrack.sequences
+        ///     because patterns can be re-used, and patterns can link additional patterns.
+        /// </summary>
         public List<GameplayPattern> patterns = new List<GameplayPattern>();
         
         /// <summary>Links phrases to patterns, index in list must match phraseId!</summary>

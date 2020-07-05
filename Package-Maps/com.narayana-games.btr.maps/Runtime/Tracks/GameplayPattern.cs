@@ -44,7 +44,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
         /// <summary>
         ///     Dominant hand that this pattern was designed for; locations
-        ///     will be mirrored when different from player
+        ///     will be mirrored when different from player.
         /// </summary>
         public Appendage dominantHand = Appendage.Right;
 
@@ -54,6 +54,24 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Weapon interaction on non-dominant hand that this pattern was designed for.</summary>
         public WeaponInteraction weaponInteractionNonDominant = WeaponInteraction.PunchKickFlying;
 
+        /// <summary>
+        ///     The default target for this pattern. Can be overridden by targetChanges.
+        ///     A unique string that defines which prefab should be used.
+        ///     The lookup order is: In the folder where the beatmap resides
+        ///     (so a beatmap can override the default target prefabs),
+        ///     in the active target mod folder (so mods can override the
+        ///     targets) and finally, in the default game folder. 
+        /// </summary>
+        public string targetPrefab = string.Empty;
+        
+        /// <summary>
+        ///     Target changes are allowed at any time and will last
+        ///     either until the next pattern that defines a targetPrefab,
+        ///     or until the next change target event occurs (whichever
+        ///     comes first).
+        /// </summary>
+        public List<GameplayChangeTarget> targetChanges = new List<GameplayChangeTarget>();
+        
         /// <summary>
         ///     Weapon changes are only allowed before, and after the events
         ///     in a pattern. If a weapon change event is given after the
@@ -67,6 +85,18 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         
         /// <summary>Obstacles to make the gameplay more interesting.</summary>
         public List<GameplayObstacle> obstacles = new List<GameplayObstacle>();
+        
+        /// <summary>
+        ///     Links to additional patterns. Usually, it's best to design
+        ///     gameplay for left and right hand (and feet/head, if applicable)
+        ///     together in one stream. But sometimes, you may want to have
+        ///     the dominant hand have a different rhythm from the right hand,
+        ///     and in those cases, it's best to have one sequence and
+        ///     pattern for each hand that only has the events of that
+        ///     rhythmic pattern.
+        /// </summary>
+        public List<string> multiHandPatternIds = new List<string>();
+        
     }
 
 }

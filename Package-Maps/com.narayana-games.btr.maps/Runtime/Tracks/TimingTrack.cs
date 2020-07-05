@@ -53,7 +53,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Multiple tracks can be grouped for multiplayer by giving them the same group name.</summary>
         public string multiplayerGroup = "";
         
-        /// <summary>List of actual sequences, order is irrelevant.</summary>
+        /// <summary>
+        ///     List of actual sequences, order is irrelevant. Can have more or less
+        ///     entries than phrasesToSequenceIds because sequences can be re-used,
+        ///     and it's sequences can also link to additional sequences.
+        /// </summary>
         public List<TimingSequence> sequences = new List<TimingSequence>();
         
         /// <summary>Links phrases to sequences, index in list must match phraseId!</summary>
@@ -62,7 +66,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         private Dictionary<string, TimingSequence> sequenceLookup = new Dictionary<string, TimingSequence>();
         
 
-        public TimingSequence PatternForPhrase(int phraseId) {
+        public TimingSequence SequenceForPhrase(int phraseId) {
             if (sequenceLookup.Count == 0) {
                 UpdateLookup();
             }

@@ -21,18 +21,25 @@ using NarayanaGames.BeatTheRhythm.Maps.Enums;
 namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
     /// <summary>
-    ///     A special event where the player needs to change the weapon.
+    ///     A special event that changes the target that needs to be
+    ///     caught, punched, sliced, shot, whatever.
     /// </summary>
     [Serializable]
-    public class GameplayChangeWeapon {
+    public class GameplayChangeTarget {
 
-        /// <summary>Links this gameplay change weapon event to a timing event.</summary>
+        /// <summary>Links this change target event to a timing event.</summary>
         public int timingEventId = 0;
 
-        /// <summary>With which appendage - only Left, Right and Any (for Archery)!</summary>
+        /// <summary>For which appendage does this change apply!</summary>
         public Appendage pickupWith = Appendage.BothHands;
-
-        /// <summary>The weapon to change to: Catcher, Laserblade, Gun or BowAndArrow.</summary>
-        public WeaponType weapon = WeaponType.Catcher;
+        
+        /// <summary>
+        ///     A unique string that defines which prefab should be used.
+        ///     The lookup order is: In the folder where the beatmap resides
+        ///     (so a beatmap can override the default target prefabs),
+        ///     in the active target mod folder (so mods can override the
+        ///     targets) and finally, in the default game folder. 
+        /// </summary>
+        public string targetPrefab = string.Empty;
     }
 }
