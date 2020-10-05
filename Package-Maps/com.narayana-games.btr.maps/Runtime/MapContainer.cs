@@ -133,6 +133,29 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return newTimingTrack;
         }
 
+        public GameplayTrack AddGameplayTrack(TimingTrack newTimingTrack) {
+            GameplayTrack newGameplayTrack = new GameplayTrack();
+            newGameplayTrack.gameplayTrackId = Guid.NewGuid().ToString();
+            newGameplayTrack.name = $"Gameplay for {newTimingTrack.name}";
+            newGameplayTrack.timingTrackId = newTimingTrack.timingTrackId;
+            
+            foreach (Section section in songStructure.sections){
+                foreach (Phrase phrase in section.phrases) {
+                    TimingSequence ts = FindSequenceFor(phrase, newTimingTrack);
+                    
+                    GameplayPattern pt = new GameplayPattern();
+                    pt.gameplayPatternId = Guid.NewGuid().ToString();
+                    pt.name = phrase.name;
+                    pt.timingSequenceId = ts.timingSequenceId;
+                    
+                    newGameplayTrack.patterns.Add(pt);
+                    newGameplayTrack.phrasesToPatternIds.Add(pt.gameplayPatternId);
+                }
+            }
+
+            return newGameplayTrack;
+        }
+        
         public TimingTrack FindTimingTrack(int trackId) {
             return timingTracks[trackId];
         }
@@ -152,5 +175,24 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return null;
         }
 
+        public GameplayTrack FindGameplayTrack(int trackId) {
+            return gameplayTracks[trackId];
+        }
+        
+        public GameplayPattern FindPatternFor(Phrase phrase, GameplayTrack gameplayTrack) {
+            int phraseId = 0;
+            for (int i = 0; i < songStructure.sections.Count; i++) {
+                for (int x = 0; x < songStructure.sections[i].phrases.Count; x++) {
+                    if (songStructure.sections[i].phrases[x] == phrase) {
+                        // gameplayTrack.PatternForPhrase() ???
+                        if (gameplayTrack.patterns.Count > i) {
+                            return gameplayTrack.patterns[phraseId];
+                        }
+                    }
+                    phraseId++;
+                }
+            }
+            return null;
+        }
     }
 }

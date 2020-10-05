@@ -68,9 +68,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     Links to additional patterns. Usually, it's best to design
         ///     gameplay for left and right hand (and feet/head, if applicable)
         ///     together in one stream. But sometimes, you may want to have
-        ///     the dominant hand have a different rhythm from the right hand,
+        ///     the dominant hand have a different rhythm from the other hand,
         ///     and in those cases, it's best to have one sequence for each
-        ///     hand that only has the events of that rhythmic pattern.
+        ///     hand that only has the events of that rhythmic pattern (same
+        ///     applies, of course, to feet and head).
         /// </summary>
         public List<string> multiTrackSequenceIds = new List<string>();
         
