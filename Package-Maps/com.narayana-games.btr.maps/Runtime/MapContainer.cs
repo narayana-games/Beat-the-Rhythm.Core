@@ -16,8 +16,11 @@
 
 using System;
 using System.Collections.Generic;
+using NarayanaGames.BeatTheRhythm.Maps.Enums;
 using NarayanaGames.BeatTheRhythm.Maps.Structure;
 using NarayanaGames.BeatTheRhythm.Maps.Tracks;
+using NPOI.XWPF.UserModel;
+using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps {
 
@@ -91,7 +94,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public List<GameplayTrack> gameplayTracks = new List<GameplayTrack>();
         
 
-        public TimingTrack AddTimingTrack() {
+        public TimingTrack AddTimingTrack(Appendage dominantHand) {
             TimingTrack newTimingTrack = new TimingTrack();
             newTimingTrack.timingTrackId = Guid.NewGuid().ToString();
             newTimingTrack.name = $"Track {timingTracks.Count}";
@@ -100,6 +103,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             newGameplayTrack.gameplayTrackId = Guid.NewGuid().ToString();
             newGameplayTrack.name = $"Default Gameplay for {newTimingTrack.name}";
             newGameplayTrack.timingTrackId = newTimingTrack.timingTrackId;
+            newGameplayTrack.dominantHand = dominantHand;
             
             foreach (Section section in songStructure.sections){
                 foreach (Phrase phrase in section.phrases){
@@ -118,6 +122,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                     pt.gameplayPatternId = Guid.NewGuid().ToString();
                     pt.name = phrase.name;
                     pt.timingSequenceId = ts.timingSequenceId;
+                    pt.dominantHand = newGameplayTrack.dominantHand;
                     
                     newGameplayTrack.patterns.Add(pt);
                     newGameplayTrack.phrasesToPatternIds.Add(pt.gameplayPatternId);
@@ -133,11 +138,12 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return newTimingTrack;
         }
 
-        public GameplayTrack AddGameplayTrack(TimingTrack newTimingTrack) {
+        public GameplayTrack AddGameplayTrack(TimingTrack newTimingTrack, Appendage dominantHand) {
             GameplayTrack newGameplayTrack = new GameplayTrack();
             newGameplayTrack.gameplayTrackId = Guid.NewGuid().ToString();
             newGameplayTrack.name = $"Gameplay for {newTimingTrack.name}";
             newGameplayTrack.timingTrackId = newTimingTrack.timingTrackId;
+            newGameplayTrack.dominantHand = dominantHand;
             
             foreach (Section section in songStructure.sections){
                 foreach (Phrase phrase in section.phrases) {
@@ -147,6 +153,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                     pt.gameplayPatternId = Guid.NewGuid().ToString();
                     pt.name = phrase.name;
                     pt.timingSequenceId = ts.timingSequenceId;
+                    pt.dominantHand = newGameplayTrack.dominantHand;
                     
                     newGameplayTrack.patterns.Add(pt);
                     newGameplayTrack.phrasesToPatternIds.Add(pt.gameplayPatternId);
@@ -160,6 +167,16 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return timingTracks[trackId];
         }
 
+        public TimingTrack FindTimingTrack(string trackId) {
+            for (int i = 0; i < timingTracks.Count; i++) {
+                if (timingTracks[i].timingTrackId.Equals(trackId)) {
+                    return timingTracks[i];
+                }
+            }
+
+            return null;
+        }
+        
         public TimingSequence FindSequenceFor(Phrase phrase, TimingTrack timingTrack) {
             int phraseId = 0;
             for (int i = 0; i < songStructure.sections.Count; i++) {
@@ -176,6 +193,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         }
 
         public GameplayTrack FindGameplayTrack(int trackId) {
+            if (trackId < 0 || trackId >= gameplayTracks.Count) {
+                return null;
+            }
+            
             return gameplayTracks[trackId];
         }
         
@@ -194,5 +215,84 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             }
             return null;
         }
+
+        public List<CondensedEvent> BuildGameplay(int gameplayTrackId = 0) {
+            List<CondensedEvent> events = new List<CondensedEvent>();
+            GameplayTrack gameplayTrack = FindGameplayTrack(gameplayTrackId);
+            if (gameplayTrack == null) {
+                Debug.LogError($"gameplayTrackId {gameplayTrackId} not found!");
+                return events;
+            }
+            TimingTrack timingTrack = FindTimingTrack(gameplayTrack.timingTrackId);
+            if (timingTrack == null) {
+                Debug.LogError($"Could not resolve timing track {gameplayTrack.timingTrackId} in ");
+                return null;
+            }
+
+            int eventIndex = 0;
+
+            bool loggedException = false;
+            
+            foreach (Section section in songStructure.sections){
+                foreach (Phrase phrase in section.phrases) {
+                    TimingSequence sequence = timingTrack.SequenceForPhrase(phrase.phraseId);
+                    GameplayPattern pattern = gameplayTrack.PatternForPhrase(phrase.phraseId);
+                    if (!sequence.timingSequenceId.Equals(pattern.timingSequenceId)) {
+                        Debug.LogError($"Phrase {phrase.phraseId} has mismatch between"
+                                       + $" sequence ({sequence.timingSequenceId}) and"
+                                       + $" pattern ({pattern.gameplayPatternId}) which links to"
+                                       + $" sequence ({pattern.timingSequenceId})!");
+                    }
+
+                    if (pattern.multiHandPatternIds.Count > 0) {
+                        #warning multiHandPatternIds is not supported, yet!
+                        Debug.LogWarning("multiHandPatternIds is not supported, yet!");
+                        // merge the patterns
+                    }
+                    
+                    // rotations might best be in a separate list
+                    // change target must be before events
+                    // change weapon must be before events
+                    // obstacles and events => order doesn't really matter
+                    for (var i = 0; i < pattern.events.Count; i++) {
+                        GameplayEvent evt = pattern.events[i];
+                        try {
+                            TimingEvent timingEvent = sequence.FindTimingEvent(evt.timingEventId);
+                            
+                            CondensedEvent condensedEvent = new CondensedEvent() {
+                                Index = eventIndex++,
+                                Song = songStructure,
+                                Phrase = phrase,
+                                
+                                TimingTrack = timingTrack,
+                                TimingSequence = sequence,
+                                TimingEvent = timingEvent,
+                                
+                                GameplayTrack = gameplayTrack,
+                                GameplayPattern = pattern,
+                                
+                                Event = evt
+                            };
+                            events.Add(condensedEvent);
+                        } catch (Exception exc) {
+                            //if (!loggedException) {
+                                Debug.LogError($"Could not get timingEvent {evt.timingEventId}"
+                                               + $" (Sequence Events: {sequence.events.Count})"
+                                               + $" (Pattern Events: {pattern.events.Count})"
+                                               + $" for phrase ({phrase.phraseId}),"
+                                               + $" sequence: {sequence.timingSequenceId}"
+                                               + $" pattern: {pattern.gameplayPatternId}"
+                                               );
+                                loggedException = true;
+                            //}
+                        }
+                    }
+                }
+            }
+
+            return events;
+        }
+        
+        // TODO: Create a method that turns a list of CondensedEvents into a GameplayPattern
     }
 }

@@ -44,6 +44,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public string currentMapPath = "C:/GameDev/TestMapA.json";
 
         [Header("Events")]
+        public UnityEvent onMapChanged = new UnityEvent();
+        
         public UnityEvent onSectionChanged = new UnityEvent();
         public UnityEvent onPhraseChanged = new UnityEvent();
         public UnityEvent onCurrentBeatsPerBarChanged = new UnityEvent();
@@ -54,6 +56,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public UnityEvent onTimingTrackChanged = new UnityEvent();
         public UnityEvent onGameplayTrackChanged = new UnityEvent();
 
+        public UnityEvent onEventsChanged = new UnityEvent();
+        
         public class UnityEventGE : UnityEvent<CondensedEvent> { }
 
         public UnityEventGE onGameplayEventAdded = new UnityEventGE();
@@ -168,6 +172,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentTimingTrackId = value;
                 currentTimingTrack = currentMap.timingTracks[value];
                 onTimingTrackChanged.Invoke();
+                onEventsChanged.Invoke();
             }
         }
 
@@ -201,6 +206,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentGameplayTrackId = value;
                 currentGameplayTrack = currentMap.gameplayTracks[value];
                 onGameplayTrackChanged.Invoke();
+                onEventsChanged.Invoke();
             }
         }
 
@@ -235,7 +241,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         private int currentBeatsPerBar = 4;
 
+        private static int condensedEventIndex = 0;        
+        
         public void Update() {
+            if (currentMap?.songStructure == null) {
+                return;
+            }
             CheckSegmentChanged();
             CheckLoopTick();
             CheckMetronome();
@@ -253,7 +264,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     if (CurrentPhrase == null) {
                         Debug.LogFormat("Setting current phrase because it was previously null");
                     } else {
-                        Debug.LogFormat("Current Time: {0}/{1}, Scheduled Time: {2}, current phrase: {3}", 
+                        Debug.LogFormat("Current Time: {0:0.0000}/{1:0.0000}, Scheduled Time: {2:0.000}, current phrase: {3}", 
                             songAudio.TimePrecise, currentTimePlus, songAudio.TimePreciseScheduled, CurrentPhrase);
                     }
                     CurrentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
@@ -446,6 +457,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             currentPhrase = currentMap.songStructure.FindPhraseAt(time);
             currentPhrase.StartBar = 0;
             CurrentSectionChanged();
+            onMapChanged.Invoke();
         }
 
         private Appendage currentDominantHand;
@@ -455,13 +467,13 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 if (currentMap.timingTracks.Count > 0) {
                     CurrentTimingTrack = currentMap.timingTracks[0];
                 } else {
-                    CurrentTimingTrack = currentMap.AddTimingTrack();
+                    CurrentTimingTrack = currentMap.AddTimingTrack(dominantHand);
                 }
 
                 if (currentMap.gameplayTracks.Count > 0) {
                     currentGameplayTrack = currentMap.gameplayTracks[0];
                 } else {
-                    currentGameplayTrack = currentMap.AddGameplayTrack(CurrentTimingTrack);
+                    currentGameplayTrack = currentMap.AddGameplayTrack(CurrentTimingTrack, dominantHand);
                 }
 
                 CurrentTimingTrack.permissions.AddAuthor(playerId);
@@ -472,17 +484,18 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 
                 currentDominantHand = dominantHand;
                 CheckSequenceChanged();
-                CheckPatternChanged();
             } else {
                 Debug.LogError("Can't Start Timing Recording when no Map is loaded!!!");
             }
         }
 
         public void AddTimingTrack(string playerId) {
-            CurrentTimingTrack = currentMap.AddTimingTrack();
+            CurrentTimingTrack = currentMap.AddTimingTrack(currentDominantHand);
             CurrentTimingTrack.permissions.AddAuthor(playerId);
             
             CheckSequenceChanged();
+            
+            onEventsChanged.Invoke();
         }
         
         public void ClearCurrentTimingTrack() {
@@ -492,6 +505,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             foreach (TimingSequence sequence in currentTimingTrack.sequences) {
                 sequence.events.Clear();
             }
+            
+            onEventsChanged.Invoke();
         }
 
         public void DeleteCurrentTimingTrack() {
@@ -505,6 +520,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             } else {
                 CurrentTimingTrackId = CurrentTimingTrackId;
             }
+            //onEventsChanged.Invoke(); => done in CurrentTimingTrackId
         }
         
         public void StartSongFromBeginning() {
@@ -695,7 +711,6 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             beatInBar = 1;
 
             CheckSequenceChanged();
-            CheckPatternChanged();
 
             UpdateLoopedSegment();
             onPhraseChanged.Invoke();
@@ -706,9 +721,6 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentTimingSequence = currentMap.FindSequenceFor(currentPhrase, currentTimingTrack);
                 currentTimingSequence.bpm = currentPhrase.bpm;
             }
-        }
-
-        private void CheckPatternChanged() {
             if (currentGameplayTrack != null) {
                 currentGameplayPattern = currentMap.FindPatternFor(currentPhrase, currentGameplayTrack);
             }
@@ -772,10 +784,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         };
         
         public void TappedImpact() {
-            TappedImpact(genericTap, WeaponType.Catcher);
+            TappedImpact(genericTap, WeaponInteraction.PunchKickFlying, WeaponType.Catcher);
         }
         
-        public void TappedImpact(GameplayEvent tappedEvent, WeaponType weapon) {
+        public void TappedImpact(GameplayEvent tappedEvent, WeaponInteraction interaction, WeaponType weapon) {
             Appendage pickedUpWith = tappedEvent.pickupWith;
 
             if (!IsPlaying) {
@@ -814,27 +826,28 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                         minDistanceRight = System.Math.Min(minDistanceRight, distance);
                         break;
                 }
-                Debug.Log($"[{pickedUpWith}/{weapon}/{impactCounter}] Current time: {distance}, minimum time left: {minDistanceLeft}, right: {minDistanceRight}");
+                Debug.Log($"[{pickedUpWith}/{weapon}/{impactCounter}-{condensedEventIndex}] Current time: {distance}, minimum time left: {minDistanceLeft}, right: {minDistanceRight}");
             } else if (lastAppendage == pickedUpWith) {
                 Debug.LogError($"[{pickedUpWith}/{weapon}/{impactCounter}] Current time: {distance} - ZERO!?!?, minimum time left: {minDistanceLeft}, right: {minDistanceRight}");
             }
 
-            if (lastTimingEvent != null && distance < 0.01F && lastAppendage != pickedUpWith) {
-                lastTimingEvent.pickupHint.Add(pickedUpWith);
-                lastAppendage = pickedUpWith;
-                Debug.Log($"[{pickedUpWith}/{weapon}/{impactCounter}] Added {pickedUpWith} "
-                          +$"to event {lastTimingEvent.eventId}, "
-                          +$"{lastTimingEvent.pickupHint.Count} appendages registered");
-                return;
-            }
-
             lastAppendage = pickedUpWith;
-            lastImpactTime = impactTime;
             
             TimingEvent timingEvent = new TimingEvent();
-            timingEvent.eventId = currentTimingSequence.events.Count;
-            timingEvent.startTime = impactTime - CurrentPhrase.StartTime;
-            timingEvent.pickupHint.Add(pickedUpWith);
+            if (lastTimingEvent != null && distance < 0.01F && lastAppendage != pickedUpWith) {
+                lastTimingEvent.pickupHint.Add(pickedUpWith);
+                timingEvent = lastTimingEvent;
+                Debug.Log($"[{pickedUpWith}/{weapon}/{impactCounter}-{condensedEventIndex}] Added {pickedUpWith} "
+                          +$"to event {lastTimingEvent.eventId}, "
+                          +$"{lastTimingEvent.pickupHint.Count} appendages registered");
+            } else {
+                timingEvent.eventId = currentTimingSequence.MaxEventID + 1;
+                timingEvent.startTime = impactTime - CurrentPhrase.StartTime;
+                timingEvent.pickupHint.Add(pickedUpWith);
+                lastImpactTime = impactTime;
+            }
+
+            
 
             lastTimingEvent = timingEvent;
 
@@ -842,6 +855,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             gameplayEvent.timingEventId = timingEvent.eventId;
 
             CondensedEvent condensedEvent = new CondensedEvent() {
+                Index = condensedEventIndex++,
                 Song = currentMap.songStructure,
                 Phrase = currentPhrase,
                 
@@ -864,6 +878,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     Phrase nextPhrase = currentMap.songStructure.FindPhraseAfter(CurrentPhrase);
                     
                     condensedEvent.TimingSequence = currentMap.FindSequenceFor(nextPhrase, CurrentTimingTrack);
+                    
+                    timingEvent.eventId = condensedEvent.TimingSequence.MaxEventID + 1;
+                    gameplayEvent.timingEventId = timingEvent.eventId; 
+                    
                     AddEventToSequence(timingEvent, condensedEvent.TimingSequence, pickedUpWith, weapon);
 
                     condensedEvent.GameplayPattern = currentMap.FindPatternFor(nextPhrase, CurrentGameplayTrack);
@@ -873,6 +891,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     Debug.LogError("Dropping timing event because it would have looped!");
                 }
             }
+
+            condensedEvent.WeaponInteraction = interaction;
             
             onGameplayEventAdded.Invoke(condensedEvent);
         }

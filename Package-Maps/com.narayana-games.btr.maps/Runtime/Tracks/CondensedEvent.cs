@@ -14,21 +14,19 @@
  */
 #endregion Copyright and License Information
 
-using System;
-using System.Collections.Generic;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
 using NarayanaGames.BeatTheRhythm.Maps.Structure;
-using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
+    [System.Serializable]
     /// <summary>
     ///     Has all the data relevant for a given event.
     /// </summary>
     public class CondensedEvent {
 
         public int Index = 0;
-        
+
         // the following properties must not be null!
         public SongStructure Song = null;
         public Phrase Phrase = null;
@@ -62,6 +60,25 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public double TimePerBeat {
             get {
                 return Phrase.TimePerBeat;
+            }
+        }
+
+        public WeaponInteraction WeaponInteraction {
+            get {
+                if (Event.pickupWith != Appendage.Any // Any => use dominant 
+                    && GameplayPattern.dominantHand != Event.pickupWith) {
+                    return GameplayPattern.weaponInteractionNonDominant;
+                } else {
+                    return GameplayPattern.weaponInteractionDominant;
+                }
+            }
+            set {
+                if (Event.pickupWith != Appendage.Any // Any => use dominant 
+                    && GameplayPattern.dominantHand != Event.pickupWith) {
+                    GameplayPattern.weaponInteractionNonDominant = value;
+                } else {
+                    GameplayPattern.weaponInteractionDominant = value;
+                }
             }
         }
     }

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
+using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
@@ -29,14 +30,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
     ///     Obviously, in our context, it's really a section of actual gameplay.
     /// </summary>
     [Serializable]
-    public class TimingSequence { 
+    public class TimingSequence {
 
         /// <summary>Globally unique ID that gameplay and other tracks can refer to.</summary>
         public string timingSequenceId = null;
-        
+
         /// <summary>The name of this sequence, usually the name of the phrase.</summary>
         public string name;
-        
+
         /// <summary>The rhythmic difficulty of this rhythm sequence.</summary>
         public DifficultyPreset difficulty = DifficultyPreset.Casual;
 
@@ -45,24 +46,44 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
         /// <summary>The instrument type of this sequence.</summary>
         public InstrumentType instrumentType = InstrumentType.Mixed;
-        
+
         /// <summary>The numerator of the meter signature (N in N/4).</summary>
         public int beatsPerBar = 4;
 
         /// <summary>The denominator of the meter signature (N in 4/N).</summary>
         public int beatUnit = 4;
-        
+
         /// <summary>The number of bars that this sequence has.</summary>
         public int durationBars = 0;
-        
+
         /// <summary>Original tempo of this sequence in BPM.</summary>
         public double bpm = 120;
 
         /// <summary>Original duration of this sequence.</summary>
         public double durationSeconds = 0;
-        
+
         /// <summary>The timing events comprising this sequence.</summary>
         public List<TimingEvent> events = new List<TimingEvent>();
+
+        public int MaxEventID {
+            get {
+                int maxEventId = 0;
+                for (int i = 0; i < events.Count; i++) {
+                    maxEventId = Mathf.Max(maxEventId, events[i].eventId);
+                }
+
+                return maxEventId;
+            }
+        }
+        
+        public TimingEvent FindTimingEvent(int timingEventId) {
+            for (int i = 0; i < events.Count; i++) {
+                if (events[i].eventId == timingEventId) {
+                    return events[i];
+                }
+            }
+            throw new ArgumentException($"Could not find timingEventId {timingEventId} in {timingSequenceId}");
+        }
         
         /// <summary>
         ///     Links to additional patterns. Usually, it's best to design
@@ -74,7 +95,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     applies, of course, to feet and head).
         /// </summary>
         public List<string> multiTrackSequenceIds = new List<string>();
-        
+
     }
 
 }

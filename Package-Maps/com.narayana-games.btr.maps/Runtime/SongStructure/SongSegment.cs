@@ -119,7 +119,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         }
 
         public override string ToString() {
-            return string.Format("{0} [{1}-{2}]", Name, StartTime, EndTime);
+            return string.Format("{0} [{1:0.0000}-{2:0.0000}]", Name, StartTime, EndTime);
         }
     }
 

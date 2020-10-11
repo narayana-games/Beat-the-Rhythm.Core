@@ -157,6 +157,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         
         public static implicit operator Vector3Float(Vector3Int v) => v.ToFloat();
         public static implicit operator Vector3Int(Vector3Float v) => v.ToInt();
+
+        public override string ToString() {
+            return $"[{x}, {y}, {z}]";
+        }
     }
     
 }

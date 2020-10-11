@@ -73,6 +73,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
         public bool isLocked = false;
 
         public void AddAuthor(string playerId) {
+            if (string.IsNullOrEmpty(playerId)) {
+                return;
+            }
+            
             if (string.IsNullOrEmpty(ownerUniquePlayerId)) {
                 ownerUniquePlayerId = playerId;
             }
