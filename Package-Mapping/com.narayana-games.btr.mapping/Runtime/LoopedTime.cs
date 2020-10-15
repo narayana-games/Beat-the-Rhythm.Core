@@ -17,15 +17,15 @@ namespace NarayanaGames.Common.Audio {
     /// </summary>
     [System.Serializable]
     public struct LoopedTime {
-        public float Time;
+        public double Time;
         
-        public float CurrentStartTime;
-        public float CurrentEndTime;
-        public float CurrentDuration;
+        public double CurrentStartTime;
+        public double CurrentEndTime;
+        public double CurrentDuration;
         
-        public float NextStartTime;
-        public float NextEndTime;
-        public float NextDuration;
+        public double NextStartTime;
+        public double NextEndTime;
+        public double NextDuration;
     }
 
 }

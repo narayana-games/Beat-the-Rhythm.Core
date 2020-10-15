@@ -20,7 +20,8 @@ using NarayanaGames.Common.Audio;
 using NarayanaGames.BeatTheRhythm.Maps;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
 using NarayanaGames.BeatTheRhythm.Maps.Structure;
-using  NarayanaGames.BeatTheRhythm.Maps.Tracks;
+using NarayanaGames.BeatTheRhythm.Maps.Tracks;
+using Debug = UnityEngine.Debug;
 
 namespace NarayanaGames.BeatTheRhythm.Mapping {
 
@@ -45,6 +46,13 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         [Header("Events")]
         public UnityEvent onMapChanged = new UnityEvent();
+
+        public class UnityEventCountIn : UnityEvent<int, int, float> { }
+
+        public UnityEventCountIn onCountIn = new UnityEventCountIn();
+
+        public class UnityEventTime : UnityEvent<float> { }
+        public UnityEventTime onJumpToTime = new UnityEventTime();
         
         public UnityEvent onSectionChanged = new UnityEvent();
         public UnityEvent onPhraseChanged = new UnityEvent();
@@ -114,6 +122,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public bool PlayLoopTick { get; set; }
         public bool PlayMetronome { get; set; }
 
+        public bool CountIn { get; set; }
+        
         private SongSegment selectedSection = null;
         public SongSegment SelectedSection {
             get { return selectedSection; }
@@ -140,8 +150,11 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             set {
                 if (currentPhrase != null) {
                     currentPhrase = value;
+                    songAudio.CurrentSegment = currentPhrase;
                     CheckBPMChanged();
                     CurrentPhraseChanged();
+                } else {
+                    Debug.LogError("Tried to set CurrentPhrase = null => ignored!");
                 }
             }
             get { return currentPhrase; }
@@ -241,8 +254,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         private int currentBeatsPerBar = 4;
 
-        private static int condensedEventIndex = 0;        
-        
+        private static int condensedEventIndex = 0;
+
+        public void OnDisable() {
+            GameplayTime.TimingSource = null;
+        }
+
         public void Update() {
             if (currentMap?.songStructure == null) {
                 return;
@@ -254,27 +271,42 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         private void CheckSegmentChanged() {
             if (songAudio != null && IsPlaying) {
-                double currentTime = songAudio.TimePrecise;
-                double currentTimePlus = currentTime + MARGIN;
-                if (CurrentSection == null || currentTimePlus < CurrentSection.StartTime || currentTime > CurrentSection.EndTime) {
-                    currentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
-                    CurrentSection = currentMap.songStructure.FindSectionAt(currentTime);
-                    CheckBPMChanged();
-                } else if (CurrentPhrase == null || currentTimePlus < CurrentPhrase.StartTime || currentTime > CurrentPhrase.EndTime) {
-                    if (CurrentPhrase == null) {
-                        Debug.LogFormat("Setting current phrase because it was previously null");
-                    } else {
-                        Debug.LogFormat("Current Time: {0:0.0000}/{1:0.0000}, Scheduled Time: {2:0.000}, current phrase: {3}", 
-                            songAudio.TimePrecise, currentTimePlus, songAudio.TimePreciseScheduled, CurrentPhrase);
+                if (!songAudio.IsPreRolling) {
+                    double currentTime = songAudio.TimePrecise;
+                    double currentTimePlus = currentTime + MARGIN;
+                    if (CurrentSection == null 
+                        || currentTimePlus < CurrentSection.StartTime 
+                        || currentTime > CurrentSection.EndTime) {
+
+                        currentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
+                        songAudio.CurrentSegment = currentPhrase;
+                        if (currentPhrase == null) {
+                            Debug.LogError($"Current Phrase was set to NULL! - based on time: {currentTime:0.00}");
+                        }
+
+                        CurrentSection = currentMap.songStructure.FindSectionAt(currentTime);
+                        CheckBPMChanged();
+                    } else if (CurrentPhrase == null 
+                               || currentTimePlus < CurrentPhrase.StartTime
+                               || currentTime > CurrentPhrase.EndTime) {
+                        
+                        if (CurrentPhrase == null) {
+                            Debug.LogFormat("Setting current phrase because it was previously null");
+                        } else {
+                            Debug.LogFormat(
+                                "Current Time: {0:0.0000}/{1:0.0000}, Scheduled Time: {2:0.000}, current phrase: {3}",
+                                songAudio.TimePrecise, currentTimePlus, songAudio.TimePreciseScheduled, CurrentPhrase);
+                        }
+
+                        CurrentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
+                        CheckBPMChanged();
                     }
-                    CurrentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
-                    CheckBPMChanged();
                 }
             }
         }
 
         private void CheckBPMChanged() {
-            if (CurrentMap.songStructure.keepTempo) {
+            if (CurrentMap.songStructure.keepTempo && CurrentPhrase != null) {
                 currentBPM = CurrentPhrase.BPM;
                 secondsPerBar = CurrentPhrase.TimePerBar;
             }
@@ -335,12 +367,22 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private bool isNextMetronomeTickScheduled = false;
         private bool isNextMetronomeTickDominant = false;
         private double nextMetronomeTickStartTime = 0;
-        private double lastTimeInPhase = 0;
+        private double lastTimeInPhase = 100;
 
         private void CheckMetronome() {
-            if (PlayMetronome && IsPlaying) {
+            bool isCountIn = (CountIn && songAudio.IsPreRolling);
+            if (IsPlaying && (PlayMetronome || isCountIn)) {
                 double time = AudioSettings.dspTime;
                 double timeInPhrase = songAudio.TimePrecise - CurrentPhrase.StartTime;
+
+                if (isCountIn) {
+                    // skip first One of second count-in bar!
+                    if (songAudio.TimePrecise > -0.1F) {
+                        lastTimeInPhase = 100;
+                        return;
+                    }
+                    timeInPhrase = songAudio.TimePrecise + 2F * CurrentPhrase.TimePerBar;
+                }
 
                 if (lastTimeInPhase > timeInPhrase) {
                     metronomeBar = 0;
@@ -348,6 +390,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     isNextMetronomeTickScheduled = false;
                     metronomeOne.Stop();
                     metronomeTwoThreeFour.Stop();
+                    metronomeOne.Play();
+                    lastTimeInPhase = timeInPhrase;
+                    if (isCountIn) {
+                        onCountIn.Invoke(metronomeBar, metronomeBeat, 1F);
+                    }
+                    return;
                 }
                 lastTimeInPhase = timeInPhrase;
 
@@ -391,6 +439,11 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 if (isNextMetronomeTickScheduled && time >= nextMetronomeTickStartTime) {
                     //Debug.LogFormat("isNextLoopTickScheduled was reset at {0} >= {1}", time, nextMetronomeTickStartTime);
                     isNextMetronomeTickScheduled = false;
+                    if (isCountIn) {
+                        // + but TimePrecise is negative => [1..0]
+                        double remaingTimeNormalized = 1 - (timeInPhrase / (2F * CurrentPhrase.TimePerBar));
+                        onCountIn.Invoke(metronomeBar, metronomeBeat, (float)remaingTimeNormalized);
+                    }
                 }
 
             } else {
@@ -456,6 +509,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             currentSection = currentMap.songStructure.FindSectionAt(time);
             currentPhrase = currentMap.songStructure.FindPhraseAt(time);
             currentPhrase.StartBar = 0;
+            songAudio.CurrentSegment = currentPhrase;
             CurrentSectionChanged();
             onMapChanged.Invoke();
         }
@@ -524,7 +578,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
         
         public void StartSongFromBeginning() {
-            songAudio.TimePrecise = 0;
+            JumpToTime(0);
             if (!IsPlaying) {
                 if (currentMap == null) {
                     CreateMap();
@@ -534,14 +588,21 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         public void Seek(double offset) {
-            songAudio.TimePrecise = Mathf.Clamp((float) (songAudio.TimePrecise + offset), 0, songAudio.Length - 1F);
+            if (GameplayTime.TimingSource == null) {
+                GameplayTime.TimingSource = songAudio;
+            } 
+            
+            float time = Mathf.Clamp((float) (songAudio.TimePrecise + offset), 0, songAudio.Length - 1F);
+            JumpToTime(time);
         }
 
         public void StartPlaying(SongSegment segment) {
             if (segment is Section) {
                 currentSection = (Section)segment;
                 currentPhrase = CurrentSection.phrases[0];
+                songAudio.CurrentSegment = currentSection;
                 CurrentSectionChanged();
+                UpdateLoopedSegment();
             } else if (segment is Phrase) {
                 currentSection = currentMap.songStructure.FindSectionAt(segment.StartTime);
                 CurrentPhrase = (Phrase)segment;
@@ -554,23 +615,43 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         public void StartPlaying(double startTime) {
+            bool needsCountIn = !IsPlaying && !IsPaused;
             StartPlaying();
-            songAudio.TimePrecise = startTime;
+            JumpToTime(startTime);
+            if (needsCountIn) {
+                CheckCountIn();
+            }
         }
 
+        private void JumpToTime(double time) {
+            songAudio.TimePrecise = time;
+            onJumpToTime.Invoke((float)time);
+        }
+        
         public void StartPlaying() {
             if (!IsPlaying && !IsPaused) {
                 songAudio.Play();
                 onPlayStateChanged.Invoke();
+                CheckCountIn();
             }
+            GameplayTime.TimingSource = songAudio;
             metronomeBar = 0;
             metronomeBeat = 0;
         }
 
+        private void CheckCountIn() {
+            if (CountIn && currentPhrase != null) {
+                songAudio.Stop(); // let's keep the start time
+                songAudio.PlayAfterPreciseDelay(2F * currentPhrase.TimePerBar);
+                lastTimeInPhase = 100;
+            }
+        }
+        
         public void StopPlaying() {
             IsPaused = false;
             songAudio.Stop();
             onPlayStateChanged.Invoke();
+            onJumpToTime.Invoke(0);
         }
 
         public bool IsPlaying {
@@ -607,6 +688,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 selectedSection = null;
                 currentSection = null;
                 currentPhrase = null;
+                songAudio.CurrentSegment = currentPhrase;
                 Update();
                 CurrentSectionChanged();
             }
@@ -620,6 +702,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
             currentSection = currentMap.songStructure.AddSection(time);
             currentPhrase = currentMap.songStructure.FindPhraseAt(time);
+            songAudio.CurrentSegment = currentPhrase;
 
             if (currentBPM > 1) {
                 currentSection.BPM = currentBPM;
@@ -651,6 +734,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             double time = CloseCurrentSegment(currentPhrase, barInPhrase);
 
             currentPhrase = currentMap.songStructure.AddPhrase(currentSection, time);
+            songAudio.CurrentSegment = currentPhrase;
 
             if (currentBPM > 1) {
                 currentPhrase.BPM = currentBPM;
@@ -797,6 +881,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
             impactCounter++;
             double impactTime = songAudio.TimePrecise;
+            if (songAudio.IsPreRolling) { // counting in
+                impactTime = CurrentPhrase.StartTime;
+            }
             double distance = impactTime - lastImpactTime;
 
             if (pickedUpWith == Appendage.Left && weapon != lastWeaponLeft
@@ -888,6 +975,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     AddEventToPattern(gameplayEvent, condensedEvent.GameplayPattern);
                     
                 } else {
+                    /*
+                     * TODO: Also, make sure this all works with loops by adding TimePreciseNextLoop and
+                     * always comparing to both numbers.
+                     */
                     Debug.LogError("Dropping timing event because it would have looped!");
                 }
             }
