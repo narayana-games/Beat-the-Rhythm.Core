@@ -270,7 +270,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         private void CheckSegmentChanged() {
-            if (songAudio != null && IsPlaying) {
+            if (songAudio != null /*&& IsPlaying*/) {
                 if (!songAudio.IsPreRolling) {
                     double currentTime = songAudio.TimePrecise;
                     double currentTimePlus = currentTime + MARGIN;
@@ -476,6 +476,13 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 json = reader.ReadToEnd();
             }
             currentMap = JsonUtility.FromJson<MapContainer>(json);
+            if (currentMap.timingTracks.Count > 0) {
+                currentTimingTrack = currentMap.timingTracks[0];
+            }
+
+            if (currentMap.gameplayTracks.Count > 0) {
+                currentGameplayTrack = currentMap.gameplayTracks[0];
+            }
 
             FixBars();
             SetupNewMap();
@@ -955,6 +962,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 
                 Event = gameplayEvent
             };
+
+            // do the triplet conversion, even though it usually not used!
+            bool tripletInThis = timingEvent.ConvertToTripletBased(CurrentPhrase);
             
             // check if we're in the current phrase after quantization
             if (timingEvent.ConvertToBeatBased(CurrentPhrase)) {

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
 using UnityEngine;
 
@@ -53,6 +54,31 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>The denominator of the meter signature (N in 4/N).</summary>
         public int beatUnit = 4;
 
+        /// <summary>
+        ///     Number of times 4ths are divided for quantization.
+        ///     0 means no quantization; in that case, use TimingEvent.startTime/duration as is.
+        ///     1 means quantization on 4ths, 2 on 8ths, 4 on 16ths, 8 on 32ths.
+        ///     3 means quantization on 4th-triplets (three notes during one fourth),
+        ///     6 is on 8th-triplets (three per 8th, or 6 per fourth).
+        ///     In this case, use TimingEvent.startNote/duration32ths.
+        /// </summary>
+        public int dividerCount = 2;
+
+        
+        /// <summary>When rendering a grid / step sequencer view, we want max res when quantizing</summary>
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public int DividerCountView => DontQuantize ? 8 : dividerCount;
+        
+        /// <summary>Convenience Check for when no quantization shall be applied</summary>
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember]
+        public bool DontQuantize => dividerCount == 0;
+        
         /// <summary>The number of bars that this sequence has.</summary>
         public int durationBars = 0;
 

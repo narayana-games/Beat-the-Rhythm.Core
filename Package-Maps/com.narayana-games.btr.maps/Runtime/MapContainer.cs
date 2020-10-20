@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
 using NarayanaGames.BeatTheRhythm.Maps.Structure;
 using NarayanaGames.BeatTheRhythm.Maps.Tracks;
-using NPOI.XWPF.UserModel;
 using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps {
@@ -199,7 +198,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             
             return gameplayTracks[trackId];
         }
-        
+
         public GameplayPattern FindPatternFor(Phrase phrase, GameplayTrack gameplayTrack) {
             int phraseId = 0;
             for (int i = 0; i < songStructure.sections.Count; i++) {

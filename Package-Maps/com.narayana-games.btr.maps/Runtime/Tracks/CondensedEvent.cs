@@ -14,6 +14,7 @@
  */
 #endregion Copyright and License Information
 
+using System.Collections.Generic;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
 using NarayanaGames.BeatTheRhythm.Maps.Structure;
 
@@ -21,7 +22,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
     [System.Serializable]
     /// <summary>
-    ///     Has all the data relevant for a given event.
+    ///     Has all the data relevant for a given gameplay event,
+    ///     or timing event, when using the GamePlayevent and GameplayObstacle
+    ///     lists.
     /// </summary>
     public class CondensedEvent {
 
@@ -38,13 +41,20 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public GameplayTrack GameplayTrack = null;
         public GameplayPattern GameplayPattern = null;
         
-        // all except one of the following is usually null
+        // all except one of the following is usually null (in gameplay event lists)
         // TODO: Change direction!!!
         public GameplayChangeTarget ChangeTarget = null;
         public GameplayChangeWeapon ChangeWeapon = null;
+
+        // use for lists serialized by gameplay events where each event is one entity
         public GameplayEvent Event = null;
         public GameplayObstacle Obstacle = null;
-
+        
+        // use for lists serialized by timing events where each event is one time
+        public List<TimingEvent> AdditionalTimingEvents = null;
+        public List<GameplayEvent> Events = null;
+        public List<GameplayObstacle> Obstacles = null;
+        
         public double StartTime {
             get {
                 return Phrase.StartTime + TimingEvent.startTime;

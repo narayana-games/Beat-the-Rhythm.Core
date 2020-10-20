@@ -106,6 +106,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         public double TimePer16th { get { return 60.0 / BPM * 4.0 / 16.0; } }
 
         public double TimePer32th { get { return 60.0 / BPM * 4.0 / 32.0; } }
+
+        public double TimePer4thTriplet { get { return (60.0 / BPM) / 3.0; } }
+        
+        public double TimePer8thTriplet { get { return (60.0 / BPM) / 6.0; } }
         
         public abstract void CalculateBPM();
 
