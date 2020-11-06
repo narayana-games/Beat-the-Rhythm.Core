@@ -270,10 +270,6 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             int start16thIn8th = 0; // Which sixteenth in the eighth?
             int start32thIn16th = 0; // Which thirty second in the sixteenth?
             
-            // dividerCount = 1 => 4ths
-            // dividerCount = 2 => 8ths
-            // dividerCount = 4 => 16ths
-            // dividerCount = 8 => 32ths
             switch (dividerCount) {
                 case 1: // 4ths
                 case 2: // 8ths
