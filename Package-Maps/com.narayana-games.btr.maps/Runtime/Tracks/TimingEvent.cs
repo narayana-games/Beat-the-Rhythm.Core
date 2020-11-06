@@ -45,7 +45,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     Same as startNote - but triplet based. Use this only if
         ///     TimeSequence.dividerCount is set to 3 or 6.
         /// </summary>
-        public int starTriplet = 0;
+        public int startTriplet = 0;
         
         #region Time Based
         /// <summary>
@@ -84,6 +84,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <param name="phrase">Phrase that this event was recorded in</param>
         /// <returns>false, if this actually needs to go to the next phrase</returns>
         public bool ConvertToBeatBased(Phrase phrase) {
+            
+            // the easy part:
+            duration32ths = (int) (duration / phrase.TimePer32th);
+            
             /*
              * Step 1: Get minimum bar/beat/8th/16th and so forth
              * Step 2: Check if we're actually closer to the next
@@ -219,7 +223,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             if (startBarInPhrase >= phrase.DurationBars) {
                 eventId = 0;
                 startTime = 0;
-                startNote = 111100;
+                startTriplet = 111100;
                 return false;
             }
             
@@ -237,7 +241,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
                         if (startBarInPhrase >= phrase.DurationBars) {
                             eventId = 0;
                             startTime = 0;
-                            startNote = 111100;
+                            startTriplet = 111100;
                             return false;
                         }
                     } else {
@@ -251,13 +255,140 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             }
 
             // Step 3 (note: 000010 looks like binary - but this is really 10)
-            startNote =   (startBarInPhrase      + 1) * 100000
-                        + (startBeatInBar        + 1) * 010000
-                        + (start4thTripletInBeat + 1) * 001000
-                        + (start8thTripletIn8th  + 1) * 000100;
+            startTriplet =   (startBarInPhrase      + 1) * 100000
+                           + (startBeatInBar        + 1) * 010000
+                           + (start4thTripletInBeat + 1) * 001000
+                           + (start8thTripletIn8th  + 1) * 000100;
             
             return true;
+        }
+
+        public int QuantizedStartNote(Phrase phrase, int dividerCount) {
+            int startBarInPhrase = 0; // Which bar in the section?
+            int startBeatInBar = 0; // Which beat in the bar?
+            int start8thInBeat = 0; // Which eighth in the beat (quarter)?
+            int start16thIn8th = 0; // Which sixteenth in the eighth?
+            int start32thIn16th = 0; // Which thirty second in the sixteenth?
+            
+            // dividerCount = 1 => 4ths
+            // dividerCount = 2 => 8ths
+            // dividerCount = 4 => 16ths
+            // dividerCount = 8 => 32ths
+            switch (dividerCount) {
+                case 1: // 4ths
+                case 2: // 8ths
+                case 4: // 16ths
+                case 8: // 32ths
+                    QuantizedStartTime2(phrase, dividerCount,
+                        ref startBarInPhrase,
+                        ref startBeatInBar,
+                        ref start8thInBeat,
+                        ref start16thIn8th,
+                        ref start32thIn16th
+                    );
+                    break;
+                // case 3: // 4th-triplets
+                // case 6: // 8th-triplets
+                //     return QuantizedStartTime3(phrase, dividerCount);
+            }
+
+            if (dividerCount != 0) {
+                if (dividerCount < 8) {
+                    start32thIn16th = -1;
+                    if (dividerCount < 4) {
+                        start16thIn8th = -1;
+                        if (dividerCount < 2) {
+                            start8thInBeat = -1;
+                        }
+                    }
+                }
+            }
+
+            return (startBarInPhrase + 1) * 100000
+                   + (startBeatInBar   + 1) * 010000
+                   + (start8thInBeat   + 1) * 001000
+                   + (start16thIn8th   + 1) * 000100
+                   + (start32thIn16th  + 1) * 000010;
         }        
+        
+        public double QuantizedStartTime(Phrase phrase, int dividerCount) {
+            int startBarInPhrase = 0; // Which bar in the section?
+            int startBeatInBar = 0; // Which beat in the bar?
+            int start8thInBeat = 0; // Which eighth in the beat (quarter)?
+            int start16thIn8th = 0; // Which sixteenth in the eighth?
+            int start32thIn16th = 0; // Which thirty second in the sixteenth?
+            
+            // dividerCount = 1 => 4ths
+            // dividerCount = 2 => 8ths
+            // dividerCount = 4 => 16ths
+            // dividerCount = 8 => 32ths
+            switch (dividerCount) {
+                case 1: // 4ths
+                case 2: // 8ths
+                case 4: // 16ths
+                case 8: // 32ths
+                    QuantizedStartTime2(phrase, dividerCount,
+                        ref startBarInPhrase,
+                        ref startBeatInBar,
+                        ref start8thInBeat,
+                        ref start16thIn8th,
+                        ref start32thIn16th
+                        );
+                    break;
+                case 3: // 4th-triplets
+                case 6: // 8th-triplets
+                    return QuantizedStartTime3(phrase, dividerCount);
+            }
+
+            return startBarInPhrase * phrase.TimePerBar
+                   + startBeatInBar * phrase.TimePerBeat
+                   + start8thInBeat * phrase.TimePer8th
+                   + start16thIn8th * phrase.TimePer16th
+                   + start32thIn16th * phrase.TimePer32th;
+        }
+
+        private void QuantizedStartTime2(Phrase phrase, int dividerCount, 
+                    ref int startBarInPhrase,
+                    ref int startBeatInBar,
+                    ref int start8thInBeat,
+                    ref int start16thIn8th,
+                    ref int start32thIn16th
+            ) {
+            
+            int timeLeft = startNote;
+
+            startBarInPhrase = Mathf.Max(0, (timeLeft / 100000) - 1);
+            timeLeft -= (startBarInPhrase + 1) * 100000;
+
+            startBeatInBar = Mathf.Max(0, (timeLeft / 010000) - 1);
+            timeLeft -= (startBeatInBar + 1) * 010000;
+
+            if (dividerCount > 1) {
+                if (phrase.beatUnit != 8) {
+                    start8thInBeat = Mathf.Max(0, (timeLeft / 001000) - 1);
+                    timeLeft -= (start8thInBeat + 1) * 001000;
+                } else {
+                    Debug.LogWarning("phrase.beatUnit == 8 => might be trouble!!!");
+                }
+
+                if (dividerCount > 2) {
+                    start16thIn8th = Mathf.Max(0, (timeLeft / 000100) - 1);
+                    timeLeft -= (start16thIn8th + 1) * 000100;
+                    if (dividerCount > 4) {
+                        start32thIn16th = Mathf.Max(0, (timeLeft / 000010) - 1);
+                    }
+                }
+            }
+        }
+
+        private double QuantizedStartTime3(Phrase phrase, int dividerCount) {
+            return startTime;
+        }
+        
+        public double QuantizedDuration(Phrase phrase, int dividerCount) {
+            
+            return duration;
+        }
         
         #endregion Beat Based
 

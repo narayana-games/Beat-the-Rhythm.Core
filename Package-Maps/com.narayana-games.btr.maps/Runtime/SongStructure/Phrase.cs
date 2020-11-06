@@ -194,6 +194,18 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             durationSeconds = durationBars * TimePerBar;
         }
 
+        public override bool Equals(object obj) {
+            Phrase other = obj as Phrase;
+            if (other == null) {
+                return false;
+            }
+
+            return this.phraseId == other.phraseId;
+        }
+
+        public override int GetHashCode() {
+            return phraseId.GetHashCode();
+        }
     }
 
 }

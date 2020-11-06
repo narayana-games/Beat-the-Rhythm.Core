@@ -66,7 +66,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         public UnityEvent onEventsChanged = new UnityEvent();
         
-        public class UnityEventGE : UnityEvent<CondensedEvent> { }
+        public class UnityEventGE : UnityEvent<CondensedEvent, bool> { }
 
         public UnityEventGE onGameplayEventAdded = new UnityEventGE();
 
@@ -873,6 +873,53 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public GameplayEvent genericTap = new GameplayEvent() {
             
         };
+
+        public void AddGameplayEvent(Phrase phrase, TimingSequence sequence, GameplayPattern pattern, Appendage pickUpWith, double impactTime) {
+            WeaponType weapon = WeaponType.Catcher;
+            WeaponInteraction interaction = pattern.weaponInteractionDominant;
+            TimingEvent timingEvent = sequence.FindTimingEvent(phrase, impactTime, 0);
+            if (timingEvent == null) {
+                Debug.Log($"Creating new event for time {impactTime:0.000}");
+                timingEvent = new TimingEvent();
+                timingEvent.eventId = currentTimingSequence.MaxEventID + 1;
+                timingEvent.startTime = impactTime;
+                timingEvent.pickupHint.Add(pickUpWith);
+            } else {
+                Debug.Log($"Using existing event at {timingEvent.startTime:0.000} for time {impactTime:0.000}");
+            }
+            GameplayEvent gameplayEvent = genericTap.Copy();
+            gameplayEvent.timingEventId = timingEvent.eventId;
+            gameplayEvent.pickupWith = pickUpWith;
+
+            CondensedEvent condensedEvent = new CondensedEvent() {
+                Index = condensedEventIndex++,
+                Song = currentMap.songStructure,
+                Phrase = phrase,
+                
+                TimingTrack = currentTimingTrack,
+                TimingSequence = sequence,
+                TimingEvent = timingEvent,
+                
+                GameplayTrack = currentGameplayTrack,
+                GameplayPattern = pattern,
+                
+                Event = gameplayEvent
+            };
+
+            // do the triplet conversion, even though it usually not used!
+            timingEvent.ConvertToTripletBased(CurrentPhrase);
+            
+            timingEvent.ConvertToBeatBased(CurrentPhrase);
+            
+            AddEventToSequence(timingEvent, condensedEvent.TimingSequence, pickUpWith, weapon);
+            AddEventToPattern(gameplayEvent, condensedEvent.GameplayPattern);
+
+            condensedEvent.WeaponInteraction = interaction;
+            
+            onGameplayEventAdded.Invoke(condensedEvent, false);
+            
+            Debug.Log($"Created new event at: {timingEvent.startTime:0.000} | {timingEvent.startNote} | {timingEvent.startTriplet}");
+        }
         
         public void TappedImpact() {
             TappedImpact(genericTap, WeaponInteraction.PunchKickFlying, WeaponType.Catcher);
@@ -995,7 +1042,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
             condensedEvent.WeaponInteraction = interaction;
             
-            onGameplayEventAdded.Invoke(condensedEvent);
+            onGameplayEventAdded.Invoke(condensedEvent, true);
         }
 
         private void AddEventToSequence(TimingEvent timingEvent, TimingSequence sequence, Appendage pickedUpWith, WeaponType weapon) {

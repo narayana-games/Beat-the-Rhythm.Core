@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using NarayanaGames.BeatTheRhythm.Maps.Enums;
+using NarayanaGames.BeatTheRhythm.Maps.Structure;
 using UnityEngine;
 
 namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
@@ -64,13 +65,21 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// </summary>
         public int dividerCount = 2;
 
+
+#if !UNITY_2017_4_OR_NEWER
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+#endif
+        [IgnoreDataMember] 
+        public bool alwaysMaxRes = false;
         
         /// <summary>When rendering a grid / step sequencer view, we want max res when quantizing</summary>
 #if !UNITY_2017_4_OR_NEWER
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
 #endif
         [IgnoreDataMember]
-        public int DividerCountView => DontQuantize ? 8 : dividerCount;
+        public int DividerCountView => DontQuantize || alwaysMaxRes ? DividerCountMax : dividerCount;
+
+        public const int DividerCountMax = 8;
         
         /// <summary>Convenience Check for when no quantization shall be applied</summary>
 #if !UNITY_2017_4_OR_NEWER
@@ -109,6 +118,30 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
                 }
             }
             throw new ArgumentException($"Could not find timingEventId {timingEventId} in {timingSequenceId}");
+        }
+
+        public TimingEvent FindTimingEvent(Phrase phrase, double time, int duration32ths) {
+            TimingEvent helper = new TimingEvent();
+            helper.startTime = time;
+            helper.ConvertToBeatBased(phrase);
+            helper.ConvertToTripletBased(phrase);
+            
+            for (int i = 0; i < events.Count; i++) {
+                // if the duration doesn't match => forget it right away!
+                if (events[i].duration32ths == duration32ths) {
+                    if (DontQuantize) {
+                        if (Mathf.Abs((float)(events[i].startTime - time)) < 0.1F) {
+                            return events[i];
+                        }
+                    } else {
+                        if (events[i].QuantizedStartNote(phrase, dividerCount)
+                            == helper.QuantizedStartNote(phrase, dividerCount)) {
+                            return events[i];
+                        }
+                    }
+                }
+            }
+            return null;
         }
         
         /// <summary>

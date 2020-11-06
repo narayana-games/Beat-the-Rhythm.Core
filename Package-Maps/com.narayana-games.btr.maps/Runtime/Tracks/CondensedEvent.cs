@@ -54,24 +54,36 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public List<TimingEvent> AdditionalTimingEvents = null;
         public List<GameplayEvent> Events = null;
         public List<GameplayObstacle> Obstacles = null;
+
+        public double SpawnTime => ImpactTime - FlyTime;
+
+        public double ImpactTime => Phrase.StartTime + ImpactTimeRelative;
+
+        public double ImpactTimeRelative {
+            get {
+                if (TimingSequence.DontQuantize) {
+                    return TimingEvent.startTime;
+                } else {
+                    return TimingEvent.QuantizedStartTime(Phrase, TimingSequence.dividerCount);
+                }
+            }
+        }
         
-        public double StartTime {
+        public double Duration {
             get {
-                return Phrase.StartTime + TimingEvent.startTime;
+                if (TimingSequence.DontQuantize) {
+                    return TimingEvent.duration;
+                } else {
+                    return TimingEvent.QuantizedDuration(Phrase, TimingSequence.dividerCount);
+                }
             }
         }
+        
+        public double FlyTime => Phrase.TimePerBar;
 
-        public double FlyTime {
-            get {
-                return Phrase.TimePerBar;
-            }
-        }
-
-        public double TimePerBeat {
-            get {
-                return Phrase.TimePerBeat;
-            }
-        }
+        public double DestroyTime => ImpactTime + TimePerBeat * 0.5;
+        
+        public double TimePerBeat => Phrase.TimePerBeat;
 
         public WeaponInteraction WeaponInteraction {
             get {
