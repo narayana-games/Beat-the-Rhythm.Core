@@ -348,7 +348,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 double time = AudioSettings.dspTime;
                 if (!isNextLoopTickScheduled && (CurrentPhrase.EndTime - songAudio.TimePrecise) < 0.1f) {
                     isNextLoopTickScheduled = true;
-                    nextLoopTickStartTime = time + (CurrentPhrase.EndTime - songAudio.TimePrecise);
+                    nextLoopTickStartTime = time + (CurrentPhrase.EndTime - songAudio.TimePrecise) / songAudio.PitchNonZero;
                     loopTick.PlayScheduled(nextLoopTickStartTime);
                 }
                 if (isNextLoopTickScheduled && time > nextLoopTickStartTime) {
@@ -369,9 +369,16 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private double nextMetronomeTickStartTime = 0;
         private double lastTimeInPhase = 100;
 
+        private float lastPitch = 0;
+        
         private void CheckMetronome() {
             bool isCountIn = (CountIn && songAudio.IsPreRolling);
             if (IsPlaying && (PlayMetronome || isCountIn)) {
+                if (Mathf.Abs(songAudio.Pitch - lastPitch) > 0.01F) {
+                    //RescheduleLoop();
+                    lastPitch = songAudio.Pitch;
+                }
+                
                 double time = AudioSettings.dspTime;
                 double timeInPhrase = songAudio.TimePrecise - CurrentPhrase.StartTime;
 
@@ -429,7 +436,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     }
                     if (scheduledTime > 0) {
                         isNextMetronomeTickScheduled = true;
-                        nextMetronomeTickStartTime = time + scheduledTime;
+                        nextMetronomeTickStartTime = time + scheduledTime / songAudio.PitchNonZero;
                         (isNextMetronomeTickDominant ? metronomeOne : metronomeTwoThreeFour).PlayScheduled(nextMetronomeTickStartTime);
                         //Debug.LogFormat("Will play {4} at: {0}, in {1} (time per bar: {2}, time per beat: {3})",
                         //    nextMetronomeTickStartTime, scheduledTime, CurrentPhrase.TimePerBar, CurrentPhrase.TimePerBeat,
