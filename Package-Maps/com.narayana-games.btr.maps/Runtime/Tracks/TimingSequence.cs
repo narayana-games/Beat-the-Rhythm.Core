@@ -125,17 +125,21 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             helper.startTime = time;
             helper.ConvertToBeatBased(phrase);
             helper.ConvertToTripletBased(phrase);
+
+            //Debug.Log($"New Event: {helper.startNote} | {helper.startTriplet}");
             
             for (int i = 0; i < events.Count; i++) {
                 // if the duration doesn't match => forget it right away!
                 if (events[i].duration32ths == duration32ths) {
                     if (DontQuantize) {
-                        if (Mathf.Abs((float)(events[i].startTime - time)) < 0.1F) {
+                        if (Mathf.Abs((float)(events[i].startTime - time)) < 0.02F) {
                             return events[i];
                         }
                     } else {
-                        if (events[i].QuantizedStartNote(phrase, dividerCount)
-                            == helper.QuantizedStartNote(phrase, dividerCount)) {
+                        int quantizedA = events[i].QuantizedStartNote(phrase, dividerCount);
+                        int quantizedB = helper.QuantizedStartNote(phrase, dividerCount); 
+                        if (quantizedA == quantizedB) {
+                            //Debug.Log($"Matched: {quantizedA} == {quantizedA} ({events[i].startNote} == {helper.startNote} | {events[i].startTriplet} == {helper.startTriplet})");
                             return events[i];
                         }
                     }

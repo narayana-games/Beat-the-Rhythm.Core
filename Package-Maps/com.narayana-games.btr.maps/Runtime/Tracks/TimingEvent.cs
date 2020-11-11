@@ -102,7 +102,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             int start32thIn16th = -1; // Which thirty second in the sixteenth?
             
             // Step 1
-            double timeLeft = startTime;
+            double timeLeft = startTime + 0.001; // err on the side of caution
             
             startBarInPhrase = (int) (timeLeft / phrase.TimePerBar);
             timeLeft -= ((double)startBarInPhrase) * phrase.TimePerBar;
@@ -195,11 +195,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             // if -1 is kept, this will result in 0, meaning: "quantized away"
             int startBarInPhrase = -1; // Which bar in the section?
             int startBeatInBar = -1; // Which beat in the bar?
-            int start4thTripletInBeat = -1; // Which 4th-triplet in the beat?
-            int start8thTripletIn8th = -1; // Which 8th-tiplet in the eighth?
+            int start8thTripletInBeat = -1; // Which 8th-triplet in the beat?
+            int start16thTripletIn8th = -1; // Which 16th-tiplet in the eighth?
             
             // Step 1
-            double timeLeft = startTime;
+            double timeLeft = startTime + 0.001; // err on the side of caution
             
             startBarInPhrase = (int) (timeLeft / phrase.TimePerBar);
             timeLeft -= ((double)startBarInPhrase) * phrase.TimePerBar;
@@ -207,11 +207,18 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             startBeatInBar = (int)(timeLeft / phrase.TimePerBeat);
             timeLeft -= ((double)startBeatInBar) * phrase.TimePerBeat;
 
-            start4thTripletInBeat = (int)(timeLeft / phrase.TimePer4thTriplet);
-            timeLeft -= ((double)start4thTripletInBeat) * phrase.TimePer4thTriplet;
+            start8thTripletInBeat = (int)(timeLeft / phrase.TimePer8thTriplet);
+            timeLeft -= ((double)start8thTripletInBeat) * phrase.TimePer8thTriplet;
             
-            start8thTripletIn8th = (int)(timeLeft / phrase.TimePer8thTriplet);
-            timeLeft -= ((double)start8thTripletIn8th) * phrase.TimePer8thTriplet;
+            start16thTripletIn8th = (int)(timeLeft / phrase.TimePer16thTriplet);
+            timeLeft -= ((double)start16thTripletIn8th) * phrase.TimePer16thTriplet;
+            
+            startTriplet =   (startBarInPhrase      + 1) * 100000
+                             + (startBeatInBar        + 1) * 010000
+                             + (start8thTripletInBeat + 1) * 001000
+                             + (start16thTripletIn8th + 1) * 000100;
+            
+            Debug.Log($"Raw conversion: {startTime:0.0000} => {startTriplet} ({phrase.TimePerBeat:0.0000} | {phrase.TimePer8thTriplet:0.0000} | {phrase.TimePer16thTriplet:0.0000})");
             
             // Step 2: If timeLeft more than half another 32th => push it all up
             //         This could be more precise by adding the time
@@ -228,13 +235,19 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             }
             
             // the more usual case: we're just a little early on the next phrase
-            if (start8thTripletIn8th == 1 && timeLeft > phrase.TimePer8thTriplet * 0.7F) {
-                start8thTripletIn8th = 0;
-                timeLeft += phrase.TimePer8thTriplet;
-                if (start4thTripletInBeat == 1 && timeLeft > phrase.TimePer4thTriplet * 0.7F) {
-                    
-                    start4thTripletInBeat = 0;
-                    
+            if (start16thTripletIn8th == 1 && timeLeft > phrase.TimePer16thTriplet * 0.5F) {
+                start16thTripletIn8th = 2;
+                // we should be done
+            } else if (start16thTripletIn8th == 2 && timeLeft > phrase.TimePer16thTriplet * 0.5F) {
+                start16thTripletIn8th = 0;
+                timeLeft += phrase.TimePer16thTriplet;
+                if (start8thTripletInBeat == 1 && timeLeft > phrase.TimePer8thTriplet * 0.5F) {
+                    start8thTripletInBeat = 2;
+                    // we should be done
+                } else if (start8thTripletInBeat == 2 && timeLeft > phrase.TimePer8thTriplet * 0.5F) {
+                    start8thTripletInBeat = 0;
+                    timeLeft += phrase.TimePer8thTriplet;
+
                     if (startBeatInBar == phrase.beatsPerBar - 1 && timeLeft > phrase.TimePerBeat * 0.5F) {
                         startBeatInBar = 0;
                         startBarInPhrase++;
@@ -248,53 +261,49 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
                         startBeatInBar++;
                     }
                 } else {
-                    start4thTripletInBeat = 1;
+                    start8thTripletInBeat = 1;
                 }
-            } else {
-                start8thTripletIn8th = 1;
             }
 
             // Step 3 (note: 000010 looks like binary - but this is really 10)
             startTriplet =   (startBarInPhrase      + 1) * 100000
                            + (startBeatInBar        + 1) * 010000
-                           + (start4thTripletInBeat + 1) * 001000
-                           + (start8thTripletIn8th  + 1) * 000100;
+                           + (start8thTripletInBeat + 1) * 001000
+                           + (start16thTripletIn8th + 1) * 000100;
             
             return true;
         }
 
         public int QuantizedStartNote(Phrase phrase, int dividerCount) {
-            int startBarInPhrase = 0; // Which bar in the section?
-            int startBeatInBar = 0; // Which beat in the bar?
-            int start8thInBeat = 0; // Which eighth in the beat (quarter)?
-            int start16thIn8th = 0; // Which sixteenth in the eighth?
-            int start32thIn16th = 0; // Which thirty second in the sixteenth?
+            int start8thInBeat = -1; // Which eighth in the beat (quarter)?
+            int start16thIn8th = -1; // Which sixteenth in the eighth?
+            int start32thIn16th = -1; // Which thirty second in the sixteenth?
+
+            int start8thTripletInBeat = -1; // Which 8th-triplet in the beat?
+            int start16thTripletIn8th = -1; // Which 16th-tiplet in the eighth?
             
-            switch (dividerCount) {
-                case 1: // 4ths
-                case 2: // 8ths
-                case 4: // 16ths
-                case 8: // 32ths
-                    QuantizedStartTime2(phrase, dividerCount,
-                        ref startBarInPhrase,
-                        ref startBeatInBar,
-                        ref start8thInBeat,
-                        ref start16thIn8th,
-                        ref start32thIn16th
-                    );
-                    break;
-                // case 3: // 4th-triplets
-                // case 6: // 8th-triplets
-                //     return QuantizedStartTime3(phrase, dividerCount);
-            }
+            QuantizedStartTimeBarAndBeat(phrase, dividerCount,
+                out int startBarInPhrase,
+                out int startBeatInBar,
+                ref start8thInBeat,
+                ref start16thIn8th,
+                ref start32thIn16th,
+                ref start8thTripletInBeat,
+                ref start16thTripletIn8th);
 
             if (dividerCount != 0) {
                 if (dividerCount < 8) {
                     start32thIn16th = -1;
-                    if (dividerCount < 4) {
-                        start16thIn8th = -1;
-                        if (dividerCount < 2) {
-                            start8thInBeat = -1;
+                    if (dividerCount < 6) {
+                        start16thTripletIn8th = -1;
+                        if (dividerCount < 4) {
+                            if (dividerCount < 3) {
+                                start8thTripletInBeat = -1;
+                                start16thIn8th = -1;
+                                if (dividerCount < 2) {
+                                    start8thInBeat = -1;
+                                }
+                            }
                         }
                     }
                 }
@@ -302,62 +311,94 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
             return (startBarInPhrase + 1) * 100000
                    + (startBeatInBar   + 1) * 010000
+                   
                    + (start8thInBeat   + 1) * 001000
                    + (start16thIn8th   + 1) * 000100
-                   + (start32thIn16th  + 1) * 000010;
+                   + (start32thIn16th  + 1) * 000010
+                   
+                   + (start8thTripletInBeat + 1) * 001000
+                   + (start16thTripletIn8th  + 1) * 000100;
         }        
         
         public double QuantizedStartTime(Phrase phrase, int dividerCount) {
-            int startBarInPhrase = 0; // Which bar in the section?
-            int startBeatInBar = 0; // Which beat in the bar?
             int start8thInBeat = 0; // Which eighth in the beat (quarter)?
             int start16thIn8th = 0; // Which sixteenth in the eighth?
             int start32thIn16th = 0; // Which thirty second in the sixteenth?
-            
-            // dividerCount = 1 => 4ths
-            // dividerCount = 2 => 8ths
-            // dividerCount = 4 => 16ths
-            // dividerCount = 8 => 32ths
-            switch (dividerCount) {
-                case 1: // 4ths
-                case 2: // 8ths
-                case 4: // 16ths
-                case 8: // 32ths
-                    QuantizedStartTime2(phrase, dividerCount,
-                        ref startBarInPhrase,
-                        ref startBeatInBar,
-                        ref start8thInBeat,
-                        ref start16thIn8th,
-                        ref start32thIn16th
-                        );
-                    break;
-                case 3: // 4th-triplets
-                case 6: // 8th-triplets
-                    return QuantizedStartTime3(phrase, dividerCount);
-            }
+
+            int start8thTripletInBeat = 0; // Which 8th-triplet in the beat?
+            int start16thTripletIn8th = 0; // Which 16th-tiplet in the eighth?
+
+            QuantizedStartTimeBarAndBeat(phrase, dividerCount,
+                out int startBarInPhrase,
+                out int startBeatInBar,
+                ref start8thInBeat,
+                ref start16thIn8th,
+                ref start32thIn16th,
+                ref start8thTripletInBeat,
+                ref start16thTripletIn8th);
 
             return startBarInPhrase * phrase.TimePerBar
                    + startBeatInBar * phrase.TimePerBeat
+                   
                    + start8thInBeat * phrase.TimePer8th
                    + start16thIn8th * phrase.TimePer16th
-                   + start32thIn16th * phrase.TimePer32th;
+                   + start32thIn16th * phrase.TimePer32th
+                   
+                   + start8thTripletInBeat * phrase.TimePer8thTriplet
+                   + start16thTripletIn8th * phrase.TimePer16thTriplet
+                ;
         }
 
-        private void QuantizedStartTime2(Phrase phrase, int dividerCount, 
-                    ref int startBarInPhrase,
-                    ref int startBeatInBar,
-                    ref int start8thInBeat,
-                    ref int start16thIn8th,
-                    ref int start32thIn16th
+        private void QuantizedStartTimeBarAndBeat(Phrase phrase, int dividerCount,
+            out int startBarInPhrase,
+            out int startBeatInBar,
+            ref int start8thInBeat, 
+            ref int start16thIn8th,
+            ref int start32thIn16th,
+            ref int start8thTripletInBeat,
+            ref int start16thTripletIn8th
             ) {
             
-            int timeLeft = startNote;
+            int timeLeft = dividerCount == 3 || dividerCount == 6
+                ? startTriplet
+                : startNote;
 
             startBarInPhrase = Mathf.Max(0, (timeLeft / 100000) - 1);
             timeLeft -= (startBarInPhrase + 1) * 100000;
 
             startBeatInBar = Mathf.Max(0, (timeLeft / 010000) - 1);
             timeLeft -= (startBeatInBar + 1) * 010000;
+            
+            switch (dividerCount) {
+                case 1: // 4ths
+                case 2: // 8ths
+                case 4: // 16ths
+                case 8: // 32ths
+                    QuantizedStartTime2(phrase, dividerCount,
+                        ref timeLeft,
+                        ref start8thInBeat,
+                        ref start16thIn8th,
+                        ref start32thIn16th
+                    );
+                    break;
+                case 3: // 8th-triplets
+                case 6: // 16th-triplets
+                    QuantizedStartTime3(phrase, dividerCount,
+                        ref timeLeft,
+                        ref start8thTripletInBeat,
+                        ref start16thTripletIn8th
+                    );
+                    break;
+            }
+            
+        }
+
+        private void QuantizedStartTime2(Phrase phrase, int dividerCount, 
+                    ref int timeLeft,
+                    ref int start8thInBeat,
+                    ref int start16thIn8th,
+                    ref int start32thIn16th
+            ) {
 
             if (dividerCount > 1) {
                 if (phrase.beatUnit != 8) {
@@ -377,7 +418,16 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             }
         }
 
-        private double QuantizedStartTime3(Phrase phrase, int dividerCount) {
+        private double QuantizedStartTime3(Phrase phrase, int dividerCount, 
+            ref int timeLeft,
+            ref int start8thTripletInBeat,
+            ref int start16thTripletIn8th) {
+            
+            start8thTripletInBeat = Mathf.Max(0, (timeLeft / 001000) - 1);
+            timeLeft -= (start8thTripletInBeat + 1) * 001000;
+            
+            start16thTripletIn8th = Mathf.Max(0, (timeLeft / 000100) - 1);
+            
             return startTime;
         }
         
