@@ -150,6 +150,8 @@ namespace NarayanaGames.Common.Audio {
             }
         }
 
+        public bool LoopSegment => LoopCurrentSegment && CurrentLoopedSegment != null;
+        
         private bool loopCurrentSegment = false;
         public bool LoopCurrentSegment {
             get { return loopCurrentSegment; }
@@ -168,7 +170,7 @@ namespace NarayanaGames.Common.Audio {
         }
 
         private bool UpdateNextStartTime() {
-            if (LoopCurrentSegment && CurrentLoopedSegment != null) {
+            if (LoopSegment) {
                 double delay = CurrentLoopedSegment.EndTime - TimePrecise;
                 if (IsPreRolling) {
                     delay = CurrentLoopedSegment.DurationSeconds - TimePrecise;
@@ -192,7 +194,7 @@ namespace NarayanaGames.Common.Audio {
         private float lastPitch = 0;
         
         private void CheckLoop() {
-            if (IsPlaying && LoopCurrentSegment && CurrentLoopedSegment != null) {
+            if (IsPlaying && LoopSegment) {
                 if (Mathf.Abs(Pitch - lastPitch) > 0.01F) {
                     RescheduleLoop();
                     lastPitch = Pitch;

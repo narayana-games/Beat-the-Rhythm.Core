@@ -7,6 +7,7 @@ namespace NarayanaGames.Common.Audio {
     public static class GameplayTime {
 
         public static bool UseGlobalTime = false;
+        public static bool IsLooping = false; // only used for testing!
         private static MultiTrackAudioSource timingAudioSource = null;
 
         private static bool pauseSystems = false;
@@ -25,21 +26,22 @@ namespace NarayanaGames.Common.Audio {
                 lastLoopedTime.CurrentStartTime = lastLoopedTime.NextStartTime = 0;
                 
                 if (timingAudioSource != null) {
-                    lastLoopedTime.Time = timingAudioSource.TimePrecise;
+                    lastLoopedTime.IsLooping = timingAudioSource.LoopSegment;
+                    lastLoopedTime.Time = (float) timingAudioSource.TimePrecise;
                     bool noLoop = false;
                     if (timingAudioSource.IsPreRolling && timingAudioSource.CurrentSegment != null) {
-                        lastLoopedTime.Time = timingAudioSource.CurrentSegment.StartTime + timingAudioSource.TimePrecise;
+                        lastLoopedTime.Time = (float) (timingAudioSource.CurrentSegment.StartTime + timingAudioSource.TimePrecise);
                         noLoop = true;
                     }
-                    if (!noLoop && timingAudioSource.LoopCurrentSegment && timingAudioSource.CurrentLoopedSegment != null) {
+                    if (!noLoop && timingAudioSource.LoopSegment) {
                         lastLoopedTime.CurrentStartTime = lastLoopedTime.NextStartTime 
-                            = timingAudioSource.CurrentLoopedSegment.StartTime;
+                            = (float) timingAudioSource.CurrentLoopedSegment.StartTime;
 
                         lastLoopedTime.CurrentEndTime = lastLoopedTime.NextEndTime 
-                            = timingAudioSource.CurrentLoopedSegment.EndTime;
+                            = (float) timingAudioSource.CurrentLoopedSegment.EndTime;
                         
                         lastLoopedTime.CurrentDuration = lastLoopedTime.NextDuration 
-                            = timingAudioSource.CurrentLoopedSegment.DurationSeconds;
+                            = (float) timingAudioSource.CurrentLoopedSegment.DurationSeconds;
                         
                     } else { // TODO: Skip segment
                         lastLoopedTime.CurrentEndTime = lastLoopedTime.NextEndTime =
@@ -47,6 +49,8 @@ namespace NarayanaGames.Common.Audio {
                             = timingAudioSource.Length;
                     }
                 } else {
+                    lastLoopedTime.IsLooping = IsLooping;
+                    
                     lastLoopedTime.Time = UseGlobalTime ? Time.realtimeSinceStartup : -10F;
                     
                     lastLoopedTime.CurrentEndTime = lastLoopedTime.NextEndTime 
