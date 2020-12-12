@@ -33,6 +33,14 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         private const double MARGIN = 0.0001F;
 
+        public enum MappingMode {
+            Sections,
+            Timing,
+            Gameplay
+        }
+
+        public MappingMode Mode { get; set; }
+        
         [Header("Audio")]
         public MultiTrackAudioSource songAudio;
         public AudioSource previewPlayer;
