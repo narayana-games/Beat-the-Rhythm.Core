@@ -81,10 +81,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         
         public double FlyTime => Phrase.TimePerBar;
 
-        public double DestroyTime => ImpactTime + TimePerBeat * 0.5;
+        public double DestroyTime => ImpactTime + FlyTime * 0.25; // GPEMovement.CleanupRenderer(...)
         
-        public double TimePerBeat => Phrase.TimePerBeat;
-
         public WeaponInteraction WeaponInteraction {
             get {
                 if (Event.pickupWith != Appendage.Any // Any => use dominant 
