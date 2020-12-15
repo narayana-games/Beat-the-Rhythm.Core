@@ -18,6 +18,14 @@ namespace NarayanaGames.Common.Audio {
                 pauseSystems = value;
             }
         }
+
+        public static bool IsShortLoop {
+            get {
+                return lastLoopedTime.IsLooping
+                       && timingAudioSource.CurrentLoopedSegment != null
+                       && timingAudioSource.CurrentLoopedSegment.DurationBars == 1;
+            }
+        }
         
         private static LoopedTime lastLoopedTime = new LoopedTime();
         
