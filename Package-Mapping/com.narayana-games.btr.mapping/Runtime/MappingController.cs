@@ -515,7 +515,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         private void FixBars() {
-            int firstBar = 1;
+            int firstBar = 0;
             for (int i = 0; i < currentMap.songStructure.sections.Count; i++) {
                 currentMap.songStructure.sections[i].StartBar = firstBar;
                 currentMap.songStructure.sections[i].CalculateStartBarsForPhrases();
@@ -530,7 +530,6 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
             currentSection = currentMap.songStructure.FindSectionAt(time);
             currentPhrase = currentMap.songStructure.FindPhraseAt(time);
-            currentPhrase.StartBar = 0;
             songAudio.CurrentSegment = currentPhrase;
             CurrentSectionChanged();
             onMapChanged.Invoke();

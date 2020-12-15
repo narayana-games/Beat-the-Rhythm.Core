@@ -213,7 +213,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         }
 
         public void CalculateBarsFromBPMandTimes() {
-            int barInSong = 1;
+            int barInSong = 0;
             foreach (Section section in sections) {
                 section.StartBar = barInSong;
                 section.CalculateBarsFromBPMandTimes(barInSong);
