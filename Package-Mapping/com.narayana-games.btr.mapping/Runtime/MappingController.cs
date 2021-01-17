@@ -719,6 +719,28 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
         }
 
+        public void DeleteEventsIn(Phrase phrase, bool includeTimingEvents) {
+            List<GameplayTrack> dependentTracks = new List<GameplayTrack>();
+            foreach (GameplayTrack track in currentMap.gameplayTracks) {
+                if (track.timingTrackId == currentTimingTrack.timingTrackId) {
+                    dependentTracks.Add(track);
+                }
+            }
+
+            TimingSequence sequence = currentMap.FindSequenceFor(phrase, currentTimingTrack);
+            GameplayPattern pattern = currentMap.FindPatternFor(phrase, currentGameplayTrack);
+            foreach (TimingEvent evt in sequence.events) {
+                pattern.Delete(evt);
+                if (includeTimingEvents) {
+                    foreach (GameplayTrack track in dependentTracks) {
+                        GameplayPattern dependentPattern = track.PatternForPhrase(phrase.phraseId);
+                        dependentPattern.Delete(evt);
+                    }
+                }
+            }
+            sequence.events.Clear();
+        }
+        
         public void DeleteEvents(List<CondensedEvent> events, bool includeTimingEvents) {
             List<GameplayTrack> dependentTracks = new List<GameplayTrack>();
             foreach (GameplayTrack track in currentMap.gameplayTracks) {
