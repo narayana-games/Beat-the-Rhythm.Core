@@ -14,6 +14,7 @@
  */
 #endregion Copyright and License Information
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using NarayanaGames.Common.Audio;
@@ -715,6 +716,28 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
         }
 
+        public void DeleteEvents(List<CondensedEvent> events, bool includeTimingEvents) {
+            List<GameplayTrack> dependentTracks = new List<GameplayTrack>();
+            foreach (GameplayTrack track in currentMap.gameplayTracks) {
+                if (track.timingTrackId == currentTimingTrack.timingTrackId) {
+                    dependentTracks.Add(track);
+                }
+            }
+            foreach (CondensedEvent evt in events) {
+                if (evt.Event != null) {
+                    evt.GameplayPattern.Delete(evt.Event);
+                }
+
+                if (includeTimingEvents) {
+                    evt.TimingSequence.Delete(evt.TimingEvent);
+                    foreach (GameplayTrack track in dependentTracks) {
+                        GameplayPattern pattern = track.PatternForPhrase(evt.Phrase.phraseId);
+                        pattern.Delete(evt.TimingEvent);
+                    }
+                }
+            }
+        }
+        
         public void TappedNewSection() {
             if (currentMap == null) { Debug.LogError("Cannot start section before map was created!"); return; }
 

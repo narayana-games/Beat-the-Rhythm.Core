@@ -96,6 +96,17 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     rhythmic pattern.
         /// </summary>
         public List<string> multiHandPatternIds = new List<string>();
+
+        public void Delete(GameplayEvent evt) {
+            events.Remove(evt);
+        }
+
+        public void Delete(TimingEvent evt) {
+            targetChanges.RemoveAll(x => x.timingEventId == evt.eventId);
+            weaponChanges.RemoveAll(x => x.timingEventId == evt.eventId);
+            events.RemoveAll(x => x.timingEventId == evt.eventId);
+            obstacles.RemoveAll(x => x.timingEventId == evt.eventId);
+        }
         
     }
 
