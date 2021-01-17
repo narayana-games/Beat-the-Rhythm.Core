@@ -289,7 +289,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
                         currentPhrase = currentMap.songStructure.FindPhraseAt(currentTime);
                         songAudio.CurrentSegment = currentPhrase;
-                        if (currentPhrase == null) {
+                        if (currentPhrase == null && IsPlaying) {
                             Debug.LogError($"Current Phrase was set to NULL! - based on time: {currentTime:0.00}");
                         }
 
@@ -847,7 +847,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private void CheckSequenceChanged() {
             if (currentTimingTrack != null) {
                 currentTimingSequence = currentMap.FindSequenceFor(currentPhrase, currentTimingTrack);
-                currentTimingSequence.bpm = currentPhrase.bpm;
+                if (currentTimingSequence != null) {
+                    currentTimingSequence.bpm = currentPhrase.bpm;
+                }
             }
             if (currentGameplayTrack != null) {
                 currentGameplayPattern = currentMap.FindPatternFor(currentPhrase, currentGameplayTrack);
