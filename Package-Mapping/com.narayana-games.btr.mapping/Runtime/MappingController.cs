@@ -955,7 +955,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             
             onGameplayEventAdded.Invoke(condensedEvent, false);
             
-            Debug.Log($"Created new event at: {timingEvent.startTime:0.000} | {timingEvent.startNote} | {timingEvent.startTriplet}");
+            //Debug.Log($"Created new event at: {timingEvent.startTime:0.000} | {timingEvent.startNote} | {timingEvent.startTriplet}");
         }
         
         public void TappedImpact() {

@@ -218,7 +218,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
                              + (start8thTripletInBeat + 1) * 001000
                              + (start16thTripletIn8th + 1) * 000100;
             
-            Debug.Log($"Raw conversion: {startTime:0.0000} => {startTriplet} ({phrase.TimePerBeat:0.0000} | {phrase.TimePer8thTriplet:0.0000} | {phrase.TimePer16thTriplet:0.0000})");
+            //Debug.Log($"Raw conversion: {startTime:0.0000} => {startTriplet} ({phrase.TimePerBeat:0.0000} | {phrase.TimePer8thTriplet:0.0000} | {phrase.TimePer16thTriplet:0.0000})");
             
             // Step 2: If timeLeft more than half another 32th => push it all up
             //         This could be more precise by adding the time
