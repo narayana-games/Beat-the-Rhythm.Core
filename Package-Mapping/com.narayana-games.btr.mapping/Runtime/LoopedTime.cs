@@ -20,6 +20,7 @@ namespace NarayanaGames.Common.Audio {
         public bool IsLooping;
         
         public float Time;
+        public float Pitch;
         
         public float CurrentStartTime;
         public float CurrentEndTime;

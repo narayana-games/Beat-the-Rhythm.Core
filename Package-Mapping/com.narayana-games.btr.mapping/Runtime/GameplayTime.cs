@@ -36,6 +36,7 @@ namespace NarayanaGames.Common.Audio {
                 if (timingAudioSource != null) {
                     lastLoopedTime.IsLooping = timingAudioSource.LoopSegment;
                     lastLoopedTime.Time = (float) timingAudioSource.TimePrecise;
+                    lastLoopedTime.Pitch = timingAudioSource.Pitch;
                     bool noLoop = false;
                     if (timingAudioSource.IsPreRolling && timingAudioSource.CurrentSegment != null) {
                         lastLoopedTime.Time = (float) (timingAudioSource.CurrentSegment.StartTime + timingAudioSource.TimePrecise);
