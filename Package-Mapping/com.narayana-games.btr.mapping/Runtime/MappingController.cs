@@ -50,6 +50,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public AudioSource metronomeOne;
         public AudioSource metronomeTwoThreeFour;
 
+        [Header("Note Template")]
+        public GameplayEvent genericTap = new GameplayEvent();
+        
         [Header("Testing")]
         public string currentMapPath = "C:/GameDev/TestMapA.json";
 
@@ -909,10 +912,6 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         // [BowAndArrow] Current time: 0.554648526077099, minimum time left: 0.52267573696145, right: 1
         // BowAndArrow: 0.52 => probably 0.5
 
-        public GameplayEvent genericTap = new GameplayEvent() {
-            
-        };
-
         public void AddGameplayEvent(Phrase phrase, TimingSequence sequence, GameplayPattern pattern, Appendage pickUpWith, double impactTime) {
             WeaponType weapon = WeaponType.Catcher;
             WeaponInteraction interaction = pattern.weaponInteractionDominant;
@@ -927,6 +926,45 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 Debug.Log($"Using existing event at {timingEvent.startTime:0.000} for time {impactTime:0.000}");
             }
             GameplayEvent gameplayEvent = genericTap.Copy();
+            switch (pickUpWith) {
+                case Appendage.Any: 
+                    gameplayEvent.rasterPos.x = 0;
+                    gameplayEvent.rasterPos.y = 0;
+                    gameplayEvent.hasDirection = false;
+                    gameplayEvent.direction = 180;
+                    break;
+                case Appendage.Head: 
+                    gameplayEvent.rasterPos.x = 0;
+                    gameplayEvent.rasterPos.y = +1;
+                    gameplayEvent.hasDirection = false;
+                    break;
+                case Appendage.Left: 
+                    gameplayEvent.rasterPos.x = -1;
+                    gameplayEvent.rasterPos.y = -1;
+                    gameplayEvent.hasDirection = true;
+                    gameplayEvent.direction = 0;
+                    break;
+                case Appendage.Right: 
+                    gameplayEvent.rasterPos.x = +1; 
+                    gameplayEvent.rasterPos.y = -1;
+                    gameplayEvent.hasDirection = true;
+                    gameplayEvent.direction = 0;
+                    break;
+                case Appendage.LeftFoot: 
+                    gameplayEvent.rasterPos.x = -1; 
+                    gameplayEvent.rasterPos.y = -3; 
+                    gameplayEvent.hasDirection = true;
+                    gameplayEvent.direction = 90;
+                    break;
+                case Appendage.RightFoot: 
+                    gameplayEvent.rasterPos.x = +1; 
+                    gameplayEvent.rasterPos.y = -3; 
+                    gameplayEvent.hasDirection = true;
+                    gameplayEvent.direction = -90;
+                    break;
+            }
+
+            gameplayEvent.pos = gameplayEvent.rasterPos.ToFloat();
             gameplayEvent.timingEventId = timingEvent.eventId;
             gameplayEvent.pickupWith = pickUpWith;
 
