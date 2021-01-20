@@ -1056,9 +1056,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             };
 
             // do the triplet conversion, even though it usually not used!
-            timingEvent.ConvertToTripletBased(CurrentPhrase);
+            timingEvent.ConvertToTripletBased(phrase);
             
-            timingEvent.ConvertToBeatBased(CurrentPhrase);
+            timingEvent.ConvertToBeatBased(phrase);
             
             AddEventToSequence(timingEvent, condensedEvent.TimingSequence, pickUpWith, weapon);
             AddEventToPattern(sequence, gameplayEvent, condensedEvent.GameplayPattern);
