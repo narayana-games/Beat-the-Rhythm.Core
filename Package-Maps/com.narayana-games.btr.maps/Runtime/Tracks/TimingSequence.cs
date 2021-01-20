@@ -130,20 +130,25 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             helper.ConvertToBeatBased(phrase);
             helper.ConvertToTripletBased(phrase);
 
-            Debug.Log($"New Event: {helper.startTime} | {helper.startNote} | {helper.startTriplet} - {events.Count} timing events in sequence");
+            //Debug.Log($"New Event: {helper.startTime} | {helper.startNote} | {helper.startTriplet} - {events.Count} timing events in sequence");
+
+            // If not quantizing => combine if it's less than 1/128th
+            double timePer128th = phrase.TimePer32th * 0.25;
+            int nextDividerCount = GetNextDividerCount(dividerCount);
             
             for (int i = 0; i < events.Count; i++) {
                 // if the duration doesn't match => forget it right away!
                 if (events[i].duration32ths == duration32ths) {
-                    if (DontQuantize) {
-                        if (Mathf.Abs((float)(events[i].startTime - time)) < 0.02F) {
+                    if (DontQuantize || nextDividerCount == 0) {
+                        if (Math.Abs(events[i].startTime - time) < timePer128th) {
+                            Debug.Log($"Matched: {events[i].startTime} == {time}, with 128th-tolerance: {timePer128th}");
                             return events[i];
                         }
                     } else {
-                        int quantizedA = events[i].QuantizedStartNote(phrase, dividerCount);
-                        int quantizedB = helper.QuantizedStartNote(phrase, dividerCount); 
+                        int quantizedA = events[i].QuantizedStartNote(phrase, nextDividerCount);
+                        int quantizedB = helper.QuantizedStartNote(phrase, nextDividerCount); 
                         if (quantizedA == quantizedB) {
-                            Debug.Log($"Matched: {quantizedA} == {quantizedA} ({events[i].startNote} == {helper.startNote} | {events[i].startTriplet} == {helper.startTriplet})");
+                            Debug.Log($"Matched: ({events[i].startTime}) {quantizedA} == {quantizedA} ({time}) | ({events[i].startNote} == {helper.startNote} | {events[i].startTriplet} == {helper.startTriplet})");
                             return events[i];
                         }
                     }
@@ -151,7 +156,20 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             }
             return null;
         }
-        
+
+        private int GetNextDividerCount(int dc) {
+            if (dc == 0 || dc == 8 || dc == 6) {
+                // if no quantization, or max quantization => no quantization
+                return 0;
+            }
+
+            if (dc == 1 || dc == 2 || dc == 4 || dc == 3) {
+                return dc * 2;
+            }
+            Debug.LogError($"Unknown divider count: {dc}, using no quantization");
+            return 0;
+        }
+
         /// <summary>
         ///     Links to additional patterns. Usually, it's best to design
         ///     gameplay for left and right hand (and feet/head, if applicable)

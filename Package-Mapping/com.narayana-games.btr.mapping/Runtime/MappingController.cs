@@ -274,7 +274,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         public void Update() {
-            if (currentMap?.songStructure == null) {
+            if (currentMap == null || currentMap.songStructure == null) {
                 return;
             }
             CheckSegmentChanged();
@@ -484,6 +484,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             if (currentMap != null) {
                 Debug.LogWarning("Called CreateMap while currentMap was not null!");
             }
+            Debug.Log($"Creating an empty MapContainer");
             currentMap = new MapContainer();
             currentMap.songStructure.durationSeconds = songAudio.Length;
             currentMap.songStructure.AddSection(0);
@@ -495,6 +496,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             using (System.IO.StreamReader reader = System.IO.File.OpenText(currentMapPath)) {
                 json = reader.ReadToEnd();
             }
+            Debug.Log($"Loading MapContainer");
             currentMap = JsonUtility.FromJson<MapContainer>(json);
             if (currentMap.timingTracks.Count > 0) {
                 currentTimingTrack = currentMap.timingTracks[0];
@@ -730,6 +732,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
             TimingSequence sequence = currentMap.FindSequenceFor(phrase, currentTimingTrack);
             GameplayPattern pattern = currentMap.FindPatternFor(phrase, currentGameplayTrack);
+            Debug.Log($"Deleting everything in {phrase.Name}, {sequence.name}, {pattern.name} - {includeTimingEvents}, {sequence.events.Count} timing events, {pattern.events.Count} gameplay events");
             foreach (TimingEvent evt in sequence.events) {
                 pattern.Delete(evt);
                 if (includeTimingEvents) {
@@ -739,7 +742,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     }
                 }
             }
-            sequence.events.Clear();
+
+            if (includeTimingEvents) {
+                sequence.events.Clear();
+            }
         }
         
         public void DeleteEvents(List<CondensedEvent> events, bool includeTimingEvents) {
@@ -749,6 +755,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     dependentTracks.Add(track);
                 }
             }
+            Debug.Log($"Deleting {events.Count} specific events from {events[0].Phrase.Name}");
             foreach (CondensedEvent evt in events) {
                 if (evt.Event != null) {
                     evt.GameplayPattern.Delete(evt.Event);
@@ -777,6 +784,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             Phrase fromPhrase = copyEvents[0].Phrase;
             TimingSequence fromSequence = copyEvents[0].TimingSequence;
             
+            Debug.Log($"Copying from {fromPhrase.Name} ({fromSequence.dividerCount}) to {phrase.Name} ({sequence.dividerCount})");
+            
             if (sequence.dividerCount < fromSequence.dividerCount) {
                 sequence.dividerCount = fromSequence.dividerCount;
                 changedDividerCount = true;
@@ -791,10 +800,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 double impactTimeRelative = evt.ImpactTimeRelative - startTimeCopyBuffer;
                 if (Math.Abs(bpmFactor - 1) > double.Epsilon) {
                     impactTimeRelative *= bpmFactor;
-                    Debug.Log($"From BPM: {fromPhrase.bpm}, To BPM: {phrase.bpm}, BPM-Factor: {bpmFactor}"
-                              +$" | Original Time: {evt.ImpactTimeRelative} | Original Relative Time: {evt.ImpactTimeRelative - startTimeCopyBuffer}"
-                              +$" | Final relative time: {impactTimeRelative} | Final Time: {startTime + impactTimeRelative}"
-                              +$" (Start Time: {startTime})");
+                    // Debug.Log($"From BPM: {fromPhrase.bpm}, To BPM: {phrase.bpm}, BPM-Factor: {bpmFactor}"
+                    //           +$" | Original Time: {evt.ImpactTimeRelative} | Original Relative Time: {evt.ImpactTimeRelative - startTimeCopyBuffer}"
+                    //           +$" | Final relative time: {impactTimeRelative} | Final Time: {startTime + impactTimeRelative}"
+                    //           +$" (Start Time: {startTime})");
                 }
                 double impactTime = startTime + impactTimeRelative;
                 AddGameplayEvent(phrase, sequence, pattern, evt.Event.pickupWith, impactTime, evt);
@@ -981,7 +990,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             TimingEvent timingEvent = sequence.FindTimingEvent(phrase, impactTime, 0);
             if (timingEvent == null) {
                 timingEvent = new TimingEvent();
-                timingEvent.eventId = currentTimingSequence.MaxEventID + 1;
+                timingEvent.eventId = sequence.MaxEventID + 1;
                 timingEvent.startTime = impactTime;
                 timingEvent.pickupHint.Add(pickUpWith);
                 Debug.Log($"Creating new event for time {impactTime:0.000} | eventId = {timingEvent.eventId}");
@@ -998,6 +1007,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 interaction = eventToCopy.WeaponInteraction;
             } else {
                 gameplayEvent = genericTap.Copy();
+                gameplayEvent.timingEventId = timingEvent.eventId;
+                gameplayEvent.pickupWith = pickUpWith;
                 switch (pickUpWith) {
                     case Appendage.Any:
                         gameplayEvent.rasterPos.x = 0;
@@ -1035,10 +1046,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                         gameplayEvent.direction = -90;
                         break;
                 }
-
                 gameplayEvent.pos = gameplayEvent.rasterPos.ToFloat();
-                gameplayEvent.timingEventId = timingEvent.eventId;
-                gameplayEvent.pickupWith = pickUpWith;
             }
 
             CondensedEvent condensedEvent = new CondensedEvent() {
@@ -1061,8 +1069,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             
             timingEvent.ConvertToBeatBased(phrase);
             
-            AddEventToSequence(timingEvent, condensedEvent.TimingSequence, pickUpWith, weapon);
-            AddEventToPattern(sequence, gameplayEvent, condensedEvent.GameplayPattern);
+            AddEventToSequence(timingEvent, sequence, pickUpWith, weapon);
+            AddEventToPattern(sequence, gameplayEvent, pattern);
 
             condensedEvent.WeaponInteraction = interaction;
             
@@ -1206,10 +1214,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
 
             if (insertAt < sequence.events.Count) {
-                Debug.Log($"Inserting: {insertAt} < {sequence.events.Count}");
+                //Debug.Log($"Inserting: {insertAt} < {sequence.events.Count}");
                 sequence.events.Insert(insertAt, timingEvent);
             } else {
-                Debug.Log($"Adding: {insertAt} < {sequence.events.Count}");
+                //Debug.Log($"Adding: {insertAt} < {sequence.events.Count}");
                 sequence.events.Add(timingEvent);
             }
             //sequence.events.Sort((a, b) => a.startTime.CompareTo(b.startTime));
