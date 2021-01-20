@@ -763,6 +763,45 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
         }
         
+        public bool PasteEvents(Phrase phrase, TimingSequence sequence, GameplayPattern pattern, 
+                                double startTime, double startTimeCopyBuffer, double endTime, 
+                                List<CondensedEvent> copyEvents) {
+
+            bool changedDividerCount = false;
+            if (copyEvents.Count == 0) {
+                Debug.LogError("Tried to copy empty selection");
+                return changedDividerCount;
+            }
+
+            Phrase fromPhrase = copyEvents[0].Phrase;
+            TimingSequence fromSequence = copyEvents[0].TimingSequence;
+            
+            if (sequence.dividerCount < fromSequence.dividerCount) {
+                sequence.dividerCount = fromSequence.dividerCount;
+                changedDividerCount = true;
+            }
+
+            double bpmFactor = 1;
+            if (Math.Abs(fromPhrase.bpm - phrase.bpm) > double.Epsilon) {
+                bpmFactor *= fromPhrase.bpm / phrase.bpm;
+            }
+            
+            foreach (CondensedEvent evt in copyEvents) {
+                double impactTimeRelative = evt.ImpactTimeRelative - startTimeCopyBuffer;
+                if (Math.Abs(bpmFactor - 1) > double.Epsilon) {
+                    impactTimeRelative *= bpmFactor;
+                    Debug.Log($"From BPM: {fromPhrase.bpm}, To BPM: {phrase.bpm}, BPM-Factor: {bpmFactor}"
+                              +$" | Original Time: {evt.ImpactTimeRelative} | Original Relative Time: {evt.ImpactTimeRelative - startTimeCopyBuffer}"
+                              +$" | Final relative time: {impactTimeRelative} | Final Time: {startTime + impactTimeRelative}"
+                              +$" (Start Time: {startTime})");
+                }
+                double impactTime = startTime + impactTimeRelative;
+                AddGameplayEvent(phrase, sequence, pattern, evt.Event.pickupWith, impactTime, evt);
+            }
+
+            return changedDividerCount;
+        }
+        
         public void TappedNewSection() {
             if (currentMap == null) { Debug.LogError("Cannot start section before map was created!"); return; }
 
@@ -934,61 +973,72 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         // [BowAndArrow] Current time: 0.554648526077099, minimum time left: 0.52267573696145, right: 1
         // BowAndArrow: 0.52 => probably 0.5
 
-        public void AddGameplayEvent(Phrase phrase, TimingSequence sequence, GameplayPattern pattern, Appendage pickUpWith, double impactTime) {
+        public void AddGameplayEvent(Phrase phrase, TimingSequence sequence, GameplayPattern pattern,
+            Appendage pickUpWith, double impactTime, CondensedEvent eventToCopy = null) {
             WeaponType weapon = WeaponType.Catcher;
             WeaponInteraction interaction = pattern.weaponInteractionDominant;
             TimingEvent timingEvent = sequence.FindTimingEvent(phrase, impactTime, 0);
             if (timingEvent == null) {
-                Debug.Log($"Creating new event for time {impactTime:0.000}");
                 timingEvent = new TimingEvent();
                 timingEvent.eventId = currentTimingSequence.MaxEventID + 1;
                 timingEvent.startTime = impactTime;
                 timingEvent.pickupHint.Add(pickUpWith);
+                Debug.Log($"Creating new event for time {impactTime:0.000} | eventId = {timingEvent.eventId}");
             } else {
-                Debug.Log($"Using existing event at {timingEvent.startTime:0.000} for time {impactTime:0.000}");
-            }
-            GameplayEvent gameplayEvent = genericTap.Copy();
-            switch (pickUpWith) {
-                case Appendage.Any: 
-                    gameplayEvent.rasterPos.x = 0;
-                    gameplayEvent.rasterPos.y = 0;
-                    gameplayEvent.hasDirection = false;
-                    gameplayEvent.direction = 180;
-                    break;
-                case Appendage.Head: 
-                    gameplayEvent.rasterPos.x = 0;
-                    gameplayEvent.rasterPos.y = +1;
-                    gameplayEvent.hasDirection = false;
-                    break;
-                case Appendage.Left: 
-                    gameplayEvent.rasterPos.x = -1;
-                    gameplayEvent.rasterPos.y = -1;
-                    gameplayEvent.hasDirection = true;
-                    gameplayEvent.direction = 0;
-                    break;
-                case Appendage.Right: 
-                    gameplayEvent.rasterPos.x = +1; 
-                    gameplayEvent.rasterPos.y = -1;
-                    gameplayEvent.hasDirection = true;
-                    gameplayEvent.direction = 0;
-                    break;
-                case Appendage.LeftFoot: 
-                    gameplayEvent.rasterPos.x = -1; 
-                    gameplayEvent.rasterPos.y = -3; 
-                    gameplayEvent.hasDirection = true;
-                    gameplayEvent.direction = 90;
-                    break;
-                case Appendage.RightFoot: 
-                    gameplayEvent.rasterPos.x = +1; 
-                    gameplayEvent.rasterPos.y = -3; 
-                    gameplayEvent.hasDirection = true;
-                    gameplayEvent.direction = -90;
-                    break;
+                Debug.Log(
+                    $"Using existing event {timingEvent.eventId} at {timingEvent.startTime:0.000} for time {impactTime:0.000}");
             }
 
-            gameplayEvent.pos = gameplayEvent.rasterPos.ToFloat();
-            gameplayEvent.timingEventId = timingEvent.eventId;
-            gameplayEvent.pickupWith = pickUpWith;
+            GameplayEvent gameplayEvent = null;
+            if (eventToCopy != null) {
+                // we already have a gameplay event from somewhere else (e.g. copy/paste)
+                gameplayEvent = eventToCopy.Event.Copy();
+                gameplayEvent.timingEventId = timingEvent.eventId;
+                interaction = eventToCopy.WeaponInteraction;
+            } else {
+                gameplayEvent = genericTap.Copy();
+                switch (pickUpWith) {
+                    case Appendage.Any:
+                        gameplayEvent.rasterPos.x = 0;
+                        gameplayEvent.rasterPos.y = 0;
+                        gameplayEvent.hasDirection = false;
+                        gameplayEvent.direction = 180;
+                        break;
+                    case Appendage.Head:
+                        gameplayEvent.rasterPos.x = 0;
+                        gameplayEvent.rasterPos.y = +1;
+                        gameplayEvent.hasDirection = false;
+                        break;
+                    case Appendage.Left:
+                        gameplayEvent.rasterPos.x = -1;
+                        gameplayEvent.rasterPos.y = -1;
+                        gameplayEvent.hasDirection = true;
+                        gameplayEvent.direction = 0;
+                        break;
+                    case Appendage.Right:
+                        gameplayEvent.rasterPos.x = +1;
+                        gameplayEvent.rasterPos.y = -1;
+                        gameplayEvent.hasDirection = true;
+                        gameplayEvent.direction = 0;
+                        break;
+                    case Appendage.LeftFoot:
+                        gameplayEvent.rasterPos.x = -1;
+                        gameplayEvent.rasterPos.y = -3;
+                        gameplayEvent.hasDirection = true;
+                        gameplayEvent.direction = 90;
+                        break;
+                    case Appendage.RightFoot:
+                        gameplayEvent.rasterPos.x = +1;
+                        gameplayEvent.rasterPos.y = -3;
+                        gameplayEvent.hasDirection = true;
+                        gameplayEvent.direction = -90;
+                        break;
+                }
+
+                gameplayEvent.pos = gameplayEvent.rasterPos.ToFloat();
+                gameplayEvent.timingEventId = timingEvent.eventId;
+                gameplayEvent.pickupWith = pickUpWith;
+            }
 
             CondensedEvent condensedEvent = new CondensedEvent() {
                 Index = condensedEventIndex++,
@@ -1011,7 +1061,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             timingEvent.ConvertToBeatBased(CurrentPhrase);
             
             AddEventToSequence(timingEvent, condensedEvent.TimingSequence, pickUpWith, weapon);
-            AddEventToPattern(gameplayEvent, condensedEvent.GameplayPattern);
+            AddEventToPattern(sequence, gameplayEvent, condensedEvent.GameplayPattern);
 
             condensedEvent.WeaponInteraction = interaction;
             
@@ -1115,7 +1165,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             // check if we're in the current phrase after quantization
             if (timingEvent.ConvertToBeatBased(CurrentPhrase)) {
                 AddEventToSequence(timingEvent, condensedEvent.TimingSequence, pickedUpWith, weapon);
-                AddEventToPattern(gameplayEvent, condensedEvent.GameplayPattern);
+                AddEventToPattern(currentTimingSequence, gameplayEvent, condensedEvent.GameplayPattern);
             } else { // false => overflow to the next sequence/phase - at least if we're not looping!
                 if (!IsLooping) {
                     Phrase nextPhrase = currentMap.songStructure.FindPhraseAfter(CurrentPhrase);
@@ -1128,7 +1178,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                     AddEventToSequence(timingEvent, condensedEvent.TimingSequence, pickedUpWith, weapon);
 
                     condensedEvent.GameplayPattern = currentMap.FindPatternFor(nextPhrase, CurrentGameplayTrack);
-                    AddEventToPattern(gameplayEvent, condensedEvent.GameplayPattern);
+                    AddEventToPattern(currentTimingSequence, gameplayEvent, condensedEvent.GameplayPattern);
                     
                 } else {
                     /*
@@ -1145,7 +1195,23 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         }
 
         private void AddEventToSequence(TimingEvent timingEvent, TimingSequence sequence, Appendage pickedUpWith, WeaponType weapon) {
-            sequence.events.Add(timingEvent);
+            int insertAt = 0;
+            for (int i = 0; i < sequence.events.Count; i++) {
+                insertAt = i;
+                if (sequence.events[i].startTime > timingEvent.startTime) {
+                    break;
+                }
+                insertAt++;
+            }
+
+            if (insertAt < sequence.events.Count) {
+                Debug.Log($"Inserting: {insertAt} < {sequence.events.Count}");
+                sequence.events.Insert(insertAt, timingEvent);
+            } else {
+                Debug.Log($"Adding: {insertAt} < {sequence.events.Count}");
+                sequence.events.Add(timingEvent);
+            }
+            //sequence.events.Sort((a, b) => a.startTime.CompareTo(b.startTime));
 
             // sequence.dominantHand = currentDominantHand;
             //
@@ -1156,8 +1222,29 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             // }
         }
 
-        private void AddEventToPattern(GameplayEvent gameplayEvent, GameplayPattern pattern) {
-            pattern.events.Add(gameplayEvent);
+        private void AddEventToPattern(TimingSequence sequence, GameplayEvent gameplayEvent, GameplayPattern pattern) {
+            TimingEvent myTimingEvent = sequence.FindTimingEvent(gameplayEvent.timingEventId);
+            int insertAt = 0;
+            for (int i = 0; i < pattern.events.Count; i++) {
+                insertAt = i;
+                TimingEvent otherTimingEvent = sequence.FindTimingEvent(pattern.events[i].timingEventId);
+                if (otherTimingEvent.startTime > myTimingEvent.startTime) {
+                    break;
+                }
+                insertAt++;
+            }
+
+            if (insertAt < pattern.events.Count) {
+                pattern.events.Insert(insertAt, gameplayEvent);
+            } else {
+                pattern.events.Add(gameplayEvent);
+            }
+            
+            // pattern.events.Sort((a, b) => {
+            //     TimingEvent ta = sequence.FindTimingEvent(a.timingEventId);
+            //     TimingEvent tb = sequence.FindTimingEvent(b.timingEventId);
+            //     return ta.startTime.CompareTo(tb.startTime);
+            // });
         }
         
         // for looping, see: https://docs.unity3d.com/ScriptReference/AudioSource.PlayScheduled.html
