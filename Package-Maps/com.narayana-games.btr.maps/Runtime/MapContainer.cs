@@ -276,12 +276,14 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                         } catch (Exception exc) {
                             //if (!loggedException) {
                                 Debug.LogError($"Could not get timingEvent {evt.timingEventId}"
+                                               + $" for GameplayEvent {i}"
                                                + $" (Sequence Events: {sequence.events.Count})"
                                                + $" (Pattern Events: {pattern.events.Count})"
                                                + $" for phrase ({phrase.phraseId}),"
                                                + $" sequence: {sequence.timingSequenceId}"
                                                + $" pattern: {pattern.gameplayPatternId}"
                                                );
+                                Debug.LogException(exc);
                                 loggedException = true;
                             //}
                         }
