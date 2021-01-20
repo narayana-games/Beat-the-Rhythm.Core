@@ -130,7 +130,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
             helper.ConvertToBeatBased(phrase);
             helper.ConvertToTripletBased(phrase);
 
-            //Debug.Log($"New Event: {helper.startNote} | {helper.startTriplet}");
+            Debug.Log($"New Event: {helper.startTime} | {helper.startNote} | {helper.startTriplet} - {events.Count} timing events in sequence");
             
             for (int i = 0; i < events.Count; i++) {
                 // if the duration doesn't match => forget it right away!
@@ -143,7 +143,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
                         int quantizedA = events[i].QuantizedStartNote(phrase, dividerCount);
                         int quantizedB = helper.QuantizedStartNote(phrase, dividerCount); 
                         if (quantizedA == quantizedB) {
-                            //Debug.Log($"Matched: {quantizedA} == {quantizedA} ({events[i].startNote} == {helper.startNote} | {events[i].startTriplet} == {helper.startTriplet})");
+                            Debug.Log($"Matched: {quantizedA} == {quantizedA} ({events[i].startNote} == {helper.startNote} | {events[i].startTriplet} == {helper.startTriplet})");
                             return events[i];
                         }
                     }
