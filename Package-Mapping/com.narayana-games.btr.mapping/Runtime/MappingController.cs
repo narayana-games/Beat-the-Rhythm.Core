@@ -36,9 +36,11 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         private const double MARGIN = 0.0001F;
 
         public enum MappingMode {
+            NoMapLoaded,
             Sections,
             Timing,
-            Gameplay
+            Gameplay,
+            Playtest
         }
 
         public MappingMode Mode { get; set; }
@@ -83,8 +85,14 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         public UnityEventGE onGameplayEventAdded = new UnityEventGE();
 
+        private Song currentSong = new Song();
+        public Song CurrentSong {
+            get => currentSong;
+            set => currentSong = value;
+        }
+
         private MapContainer currentMap;
-        public MapContainer CurrentMap { get { return currentMap; } }
+        public MapContainer CurrentMap => currentMap;
         
         private bool isPaused = false;
         public bool IsPaused {
@@ -269,6 +277,15 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         private static int condensedEventIndex = 0;
 
+        public void IsCurrentSong(Song song) {
+            Debug.Log($"[MappingController] IsCurrentSong() => {currentSong.Equals(song)}");
+            if (!currentSong.Equals(song)) {
+                currentSong = song.Copy();
+                Mode = MappingMode.NoMapLoaded;
+                currentMap = null;
+            }
+        }
+        
         public void OnDisable() {
             GameplayTime.TimingSource = null;
         }
@@ -506,6 +523,14 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentGameplayTrack = currentMap.gameplayTracks[0];
             }
 
+            if (string.IsNullOrEmpty(currentMap.songStructure.song.artist)) {
+                currentMap.songStructure.song.artist = currentMap.songStructure.artist;
+                currentMap.songStructure.song.title = currentMap.songStructure.title;
+                currentMap.songStructure.song.dominantBPM = currentMap.songStructure.dominantBPM;
+            }
+
+            currentSong = currentMap.songStructure.song.Copy();
+            
             FixBars();
             SetupNewMap();
         }
@@ -539,6 +564,10 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             currentPhrase = currentMap.songStructure.FindPhraseAt(time);
             songAudio.CurrentSegment = currentPhrase;
             CurrentSectionChanged();
+            if (Mode == MappingMode.NoMapLoaded) {
+                Mode = MappingMode.Sections;
+            }
+
             onMapChanged.Invoke();
         }
 

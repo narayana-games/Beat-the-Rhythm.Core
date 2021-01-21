@@ -51,6 +51,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         /// <summary>Owner, permissions and whether the item has been locked.</summary>
         public Permissions permissions = new Permissions();
 
+        /// <summary>Song / audio recording meta data to match this to music.</summary>
+        public Song song = new Song();
+        
         #region Recording Meta Data
         /// <summary>
         ///     The unique ID of the recording this refers to. A "recording"
