@@ -63,6 +63,11 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     targets) and finally, in the default game folder. 
         /// </summary>
         public string targetPrefab = string.Empty;
+
+        /// <summary>
+        ///     Direction changes are allowed at any time.
+        /// </summary>
+        public List<GameplayDirection> directionChanges = new List<GameplayDirection>();
         
         /// <summary>
         ///     Target changes are allowed at any time and will last

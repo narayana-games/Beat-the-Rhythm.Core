@@ -42,7 +42,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public GameplayPattern GameplayPattern = null;
         
         // all except one of the following is usually null (in gameplay event lists)
-        // TODO: Change direction!!!
+        public GameplayDirection Direction = null;
         public GameplayChangeTarget ChangeTarget = null;
         public GameplayChangeWeapon ChangeWeapon = null;
 
