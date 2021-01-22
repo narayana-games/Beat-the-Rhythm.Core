@@ -54,42 +54,6 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         /// <summary>Song / audio recording meta data to match this to music.</summary>
         public Song song = new Song();
         
-        #region Recording Meta Data
-        /// <summary>
-        ///     The unique ID of the recording this refers to. A "recording"
-        ///     can be any digital form of a specific song, an audio file,
-        ///     YouTube video, that can use the same beatmap with an optional
-        ///     offset to handle different starting times. Recordings have the
-        ///     same artist, same or similar title, and same duration +/- 3
-        ///     seconds. This can be null, if it is a general purpose snippet.
-        /// </summary>
-        public string audioRecordingId = null;
-
-        /// <summary>Name of the artist; stored redundantly with AudioRecording.</summary>
-        public string artist = null;
-
-        /// <summary>Title of the song; stored redundantly with AudioRecording.</summary>
-        public string title = null;
-
-        /// <summary>Title of the song; stored redundantly with AudioRecording.</summary>
-        public float durationSeconds = 0;
-
-        /// <summary>
-        ///     If the song does not have tempo changes, this is simply the
-        ///     tempo. Otherwise, this should be the "dominant" tempo, in other
-        ///     words, how fast or slow the song as a whole feels, leaning towards
-        ///     the fastest sections of the song, unless those are only very short.
-        /// </summary>
-        public float dominantBPM = 120;
-
-        /// <summary>The numerator of the meter signature (N in N/4).</summary>
-        public int dominantBeatsPerBar = 4;
-
-        /// <summary>The denominator of the meter signature (N in 4/N).</summary>
-        public int dominantBeatUnit = 4;
-
-        #endregion Recording Meta Data
-
         /// <summary>
         ///     If false (default), changing the duration of a Phrase will change 
         ///     its tempo. If true, the duration in seconds is defined by the
@@ -101,8 +65,6 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
 
         /// <summary>List of sections of this recording.</summary>
         public List<Section> sections = new List<Section>();
-
-        // TODO: Add method to get phrase by phrase id (needed for Sequences to work)
         
         /// <summary>
         ///     Moves phrase to previous section. Only works when phrase
@@ -134,7 +96,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             if (!IsLastPhraseInSection(phrase)) {
                 UnityEngine.Debug.LogErrorFormat("Phrase '{0}' is not the last phrase in a section, cannot move to next section!", phrase.Name);
             }
-            if (phrase.EndTime > durationSeconds - 0.001F) {
+            if (phrase.EndTime > song.durationSeconds - 0.001F) {
                 UnityEngine.Debug.LogErrorFormat("Phrase '{0}' is last phrase in song, cannot move to next section!", phrase.Name);
                 return;
             }
@@ -268,7 +230,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
                     // if you do => handle the section instead
                     segment = parentSection;
                     if (sections.Count > 1) {
-                        DeleteSegment(sections, (Section)segment, durationSeconds);
+                        DeleteSegment(sections, (Section)segment, song.durationSeconds);
                         return true;
                     }
                 }
@@ -354,7 +316,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
         private void AddSongSegment<T>(List<T> segments, T segmentToAdd, double timeInSong) where T : SongSegment {
             if (sections.Count == 0) { // first section? => section == song
                 segmentToAdd.StartTime = 0;
-                segmentToAdd.DurationSeconds = durationSeconds;
+                segmentToAdd.DurationSeconds = song.durationSeconds;
             } else { // otherwise, until the next section, or end of song
                 segmentToAdd.StartTime = timeInSong;
 
@@ -366,7 +328,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
                     if (nextSection != null) {
                         segmentToAdd.DurationSeconds = nextSection.StartTime - segmentToAdd.StartTime;
                     } else {
-                        segmentToAdd.DurationSeconds = durationSeconds - segmentToAdd.StartTime;
+                        segmentToAdd.DurationSeconds = song.durationSeconds - segmentToAdd.StartTime;
                     }
                 }
 
@@ -388,7 +350,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             T segment = null;
             for (int i = 0; i < segments.Count; i++) {
                 segment = segments[i];
-                double minEndTime = durationSeconds;
+                double minEndTime = song.durationSeconds;
                 if (segments.Count > i + 1) {
                     minEndTime = segments[i + 1].StartTime;
                 }
@@ -402,7 +364,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
 
         public T FindSegmentAfter<T>(List<T> segments, double timeInSong) where T : SongSegment {
             for (int i = 0; i < segments.Count; i++) {
-                double minEndTime = durationSeconds;
+                double minEndTime = song.durationSeconds;
                 if (segments.Count > i + 1) {
                     minEndTime = segments[i + 1].StartTime;
                 }
@@ -487,9 +449,9 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
                         phrase.DurationBars = 1;
                     }
 
-                    if (phrase.EndTime > durationSeconds) {
+                    if (phrase.EndTime > song.durationSeconds) {
                         passedEndOfSong = true;
-                        phrase.SetEndTimeKeepStartTime(durationSeconds);
+                        phrase.SetEndTimeKeepStartTime(song.durationSeconds);
                     }
 
                     // prepare for next round
@@ -510,8 +472,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             }
 
             Phrase theLastPhrase = sections[sections.Count - 1].LastPhrase;
-            if (theLastPhrase.EndTime < durationSeconds) {
-                theLastPhrase.SetEndTimeKeepStartTime(durationSeconds);
+            if (theLastPhrase.EndTime < song.durationSeconds) {
+                theLastPhrase.SetEndTimeKeepStartTime(song.durationSeconds);
             }
             
             FixPhraseIDs();

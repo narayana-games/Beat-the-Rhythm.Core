@@ -277,8 +277,8 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         private static int condensedEventIndex = 0;
 
-        public void IsCurrentSong(Song song) {
-            Debug.Log($"[MappingController] IsCurrentSong() => {currentSong.Equals(song)}");
+        public void TestCurrentSong(Song song) {
+            Debug.Log($"[MappingController] TestCurrentSong() => {currentSong.Equals(song)}");
             if (!currentSong.Equals(song)) {
                 currentSong = song.Copy();
                 Mode = MappingMode.NoMapLoaded;
@@ -503,8 +503,9 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
             }
             Debug.Log($"Creating an empty MapContainer");
             currentMap = new MapContainer();
-            currentMap.songStructure.durationSeconds = songAudio.Length;
+            currentMap.songStructure.song.durationSeconds = songAudio.Length;
             currentMap.songStructure.AddSection(0);
+            currentMap.songStructure.song = currentSong;
             SetupNewMap();
         }
 
@@ -523,13 +524,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 currentGameplayTrack = currentMap.gameplayTracks[0];
             }
 
-            if (string.IsNullOrEmpty(currentMap.songStructure.song.artist)) {
-                currentMap.songStructure.song.artist = currentMap.songStructure.artist;
-                currentMap.songStructure.song.title = currentMap.songStructure.title;
-                currentMap.songStructure.song.dominantBPM = currentMap.songStructure.dominantBPM;
-            }
-
-            currentSong = currentMap.songStructure.song.Copy();
+            currentSong = currentMap.songStructure.song;
             
             FixBars();
             SetupNewMap();
@@ -637,10 +632,11 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         public void StartSongFromBeginning() {
             JumpToTime(0);
             if (!IsPlaying) {
-                if (currentMap == null) {
-                    CreateMap();
+                if (currentMap != null) {
+                    StartPlaying();
+                } else {
+                    Debug.LogError("Cannot starting playing song before a map was either loaded or created!");
                 }
-                StartPlaying();
             }
         }
 
