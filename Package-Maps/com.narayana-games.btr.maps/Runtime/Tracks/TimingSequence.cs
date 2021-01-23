@@ -100,6 +100,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>The timing events comprising this sequence.</summary>
         public List<TimingEvent> events = new List<TimingEvent>();
 
+        public void Sort() {
+            events.Sort((a, b) => a.startTime.CompareTo(b.startTime));
+        }
+        
         public void Delete(TimingEvent evt) {
             events.Remove(evt);
         }

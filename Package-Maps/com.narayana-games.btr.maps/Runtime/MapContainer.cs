@@ -215,6 +215,12 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return null;
         }
 
+        private Dictionary<int, GameplayDirection> directions = new Dictionary<int, GameplayDirection>();
+        private Dictionary<int, GameplayChangeTarget> targets = new Dictionary<int, GameplayChangeTarget>();
+        private Dictionary<int, GameplayChangeWeapon> weapons = new Dictionary<int, GameplayChangeWeapon>();
+        private Dictionary<int, List<GameplayEvent>> gameplayEvents = new Dictionary<int, List<GameplayEvent>>();
+        private Dictionary<int, List<GameplayObstacle>> obstacles = new Dictionary<int, List<GameplayObstacle>>();
+        
         public List<CondensedEvent> BuildGameplay(int gameplayTrackId = 0) {
             List<CondensedEvent> events = new List<CondensedEvent>();
             GameplayTrack gameplayTrack = FindGameplayTrack(gameplayTrackId);
@@ -231,7 +237,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             int eventIndex = 0;
 
             bool loggedException = false;
-            
+
+
             foreach (Section section in songStructure.sections){
                 foreach (Phrase phrase in section.phrases) {
                     TimingSequence sequence = timingTrack.SequenceForPhrase(phrase.phraseId);
@@ -241,6 +248,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                                        + $" sequence ({sequence.timingSequenceId}) and"
                                        + $" pattern ({pattern.gameplayPatternId}) which links to"
                                        + $" sequence ({pattern.timingSequenceId})!");
+                        continue;
                     }
 
                     if (pattern.multiHandPatternIds.Count > 0) {
@@ -248,44 +256,45 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                         Debug.LogWarning("multiHandPatternIds is not supported, yet!");
                         // merge the patterns
                     }
-                    
-                    // rotations might best be in a separate list
-                    // change target must be before events
-                    // change weapon must be before events
-                    // obstacles and events => order doesn't really matter
-                    for (var i = 0; i < pattern.events.Count; i++) {
-                        GameplayEvent evt = pattern.events[i];
-                        try {
-                            TimingEvent timingEvent = sequence.FindTimingEvent(evt.timingEventId);
-                            
-                            CondensedEvent condensedEvent = new CondensedEvent() {
-                                Index = eventIndex++,
-                                Song = songStructure,
-                                Phrase = phrase,
-                                
-                                TimingTrack = timingTrack,
-                                TimingSequence = sequence,
-                                TimingEvent = timingEvent,
-                                
-                                GameplayTrack = gameplayTrack,
-                                GameplayPattern = pattern,
-                                
-                                Event = evt
-                            };
-                            events.Add(condensedEvent);
-                        } catch (Exception exc) {
-                            //if (!loggedException) {
-                                Debug.LogError($"Could not get timingEvent {evt.timingEventId}"
-                                               + $" for GameplayEvent {i}"
-                                               + $" (Sequence Events: {sequence.events.Count})"
-                                               + $" (Pattern Events: {pattern.events.Count})"
-                                               + $" for phrase ({phrase.phraseId}),"
-                                               + $" sequence: {sequence.timingSequenceId}"
-                                               + $" pattern: {pattern.gameplayPatternId}"
-                                               );
-                                Debug.LogException(exc);
-                                loggedException = true;
-                            //}
+
+                    PreparePattern(pattern);
+
+                    foreach (TimingEvent timingEvent in sequence.events) {
+                        int eventId = timingEvent.eventId;
+                        // rotations might best be in a separate list
+                        // change target must be before events
+                        // change weapon must be before events
+                        // obstacles and events => order doesn't really matter
+                        if (directions.ContainsKey(eventId)) {
+                            CondensedEvent condensedEvent = CreateCondensedEvent(ref eventIndex, phrase, timingTrack,
+                                sequence, timingEvent, gameplayTrack, pattern, events);
+                            condensedEvent.Direction = directions[eventId];
+                        }
+                        if (targets.ContainsKey(eventId)) {
+                            CondensedEvent condensedEvent = CreateCondensedEvent(ref eventIndex, phrase, timingTrack,
+                                sequence, timingEvent, gameplayTrack, pattern, events);
+                            condensedEvent.ChangeTarget = targets[eventId];
+                        }
+                        if (weapons.ContainsKey(eventId)) {
+                            CondensedEvent condensedEvent = CreateCondensedEvent(ref eventIndex, phrase, timingTrack,
+                                sequence, timingEvent, gameplayTrack, pattern, events);
+                            condensedEvent.ChangeWeapon = weapons[eventId];
+                        }
+                        if (gameplayEvents.ContainsKey(eventId)) {
+                            foreach (GameplayEvent evt in gameplayEvents[eventId]) {
+                                CondensedEvent condensedEvent = CreateCondensedEvent(ref eventIndex, phrase,
+                                    timingTrack,
+                                    sequence, timingEvent, gameplayTrack, pattern, events);
+                                condensedEvent.Event = evt;
+                            }
+                        }
+                        if (obstacles.ContainsKey(eventId)) {
+                            foreach (GameplayObstacle obstacle in obstacles[eventId]) {
+                                CondensedEvent condensedEvent = CreateCondensedEvent(ref eventIndex, phrase,
+                                    timingTrack,
+                                    sequence, timingEvent, gameplayTrack, pattern, events);
+                                condensedEvent.Obstacle = obstacle;
+                            }
                         }
                     }
                 }
@@ -293,7 +302,66 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
             return events;
         }
+
+        private CondensedEvent CreateCondensedEvent(ref int eventIndex, Phrase phrase, 
+            TimingTrack timingTrack, TimingSequence sequence, TimingEvent timingEvent,
+            GameplayTrack gameplayTrack, GameplayPattern pattern,
+            List<CondensedEvent> events) {
+            
+            CondensedEvent condensedEvent = new CondensedEvent() {
+                Index = eventIndex++,
+                Song = songStructure,
+                Phrase = phrase,
+                                
+                TimingTrack = timingTrack,
+                TimingSequence = sequence,
+                TimingEvent = timingEvent,
+                                
+                GameplayTrack = gameplayTrack,
+                GameplayPattern = pattern,
+            };
+            events.Add(condensedEvent);
+            return condensedEvent;
+        }
         
+        private void PreparePattern(GameplayPattern pattern) {
+            // TODO: Have base class with timingEventId
+            // Create two generic methods that make this less ugly
+            // we could also do this with Linq but that probably creates lots of allocations
+            directions.Clear();
+            targets.Clear();
+            weapons.Clear();
+            gameplayEvents.Clear();
+            obstacles.Clear();
+            foreach (var direction in pattern.directionChanges) {
+                directions[direction.timingEventId] = direction;
+            }
+
+            foreach (var target in pattern.targetChanges) {
+                targets[target.timingEventId] = target;
+            }
+
+            foreach (var weapon in pattern.weaponChanges) {
+                weapons[weapon.timingEventId] = weapon;
+            }
+
+            foreach (var gameplayEvent in pattern.events) {
+                if (!gameplayEvents.ContainsKey(gameplayEvent.timingEventId)) {
+                    gameplayEvents[gameplayEvent.timingEventId] = new List<GameplayEvent>(2);
+                }
+
+                gameplayEvents[gameplayEvent.timingEventId].Add(gameplayEvent);
+            }
+
+            foreach (var obstacle in pattern.obstacles) {
+                if (!obstacles.ContainsKey(obstacle.timingEventId)) {
+                    obstacles[obstacle.timingEventId] = new List<GameplayObstacle>(2);
+                }
+
+                obstacles[obstacle.timingEventId].Add(obstacle);
+            }
+        }
+
         // TODO: Create a method that turns a list of CondensedEvents into a GameplayPattern
     }
 }

@@ -102,17 +102,53 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// </summary>
         public List<string> multiHandPatternIds = new List<string>();
 
+        public void Delete(CondensedEvent evt) {
+            if (evt.Direction != null) { directionChanges.Remove(evt.Direction); }
+            if (evt.ChangeTarget != null) { targetChanges.Remove(evt.ChangeTarget); }
+            if (evt.ChangeWeapon != null) { weaponChanges.Remove(evt.ChangeWeapon); }
+            if (evt.Event != null) { events.Remove(evt.Event); }
+            if (evt.Obstacle != null) { obstacles.Remove(evt.Obstacle); }
+        }
+        
         public void Delete(GameplayEvent evt) {
             events.Remove(evt);
         }
 
         public void Delete(TimingEvent evt) {
+            directionChanges.RemoveAll(x => x.timingEventId == evt.eventId);
             targetChanges.RemoveAll(x => x.timingEventId == evt.eventId);
             weaponChanges.RemoveAll(x => x.timingEventId == evt.eventId);
             events.RemoveAll(x => x.timingEventId == evt.eventId);
             obstacles.RemoveAll(x => x.timingEventId == evt.eventId);
         }
-        
+
+        public void Sort(TimingSequence sequence) {
+            directionChanges.Sort((a, b) => {
+                TimingEvent ta = sequence.FindTimingEvent(a.timingEventId);
+                TimingEvent tb = sequence.FindTimingEvent(b.timingEventId);
+                return ta.startTime.CompareTo(tb.startTime);
+            });
+            targetChanges.Sort((a, b) => {
+                TimingEvent ta = sequence.FindTimingEvent(a.timingEventId);
+                TimingEvent tb = sequence.FindTimingEvent(b.timingEventId);
+                return ta.startTime.CompareTo(tb.startTime);
+            });
+            weaponChanges.Sort((a, b) => {
+                TimingEvent ta = sequence.FindTimingEvent(a.timingEventId);
+                TimingEvent tb = sequence.FindTimingEvent(b.timingEventId);
+                return ta.startTime.CompareTo(tb.startTime);
+            });
+            events.Sort((a, b) => {
+                TimingEvent ta = sequence.FindTimingEvent(a.timingEventId);
+                TimingEvent tb = sequence.FindTimingEvent(b.timingEventId);
+                return ta.startTime.CompareTo(tb.startTime);
+            });
+            obstacles.Sort((a, b) => {
+                TimingEvent ta = sequence.FindTimingEvent(a.timingEventId);
+                TimingEvent tb = sequence.FindTimingEvent(b.timingEventId);
+                return ta.startTime.CompareTo(tb.startTime);
+            });
+        }
     }
 
 }
