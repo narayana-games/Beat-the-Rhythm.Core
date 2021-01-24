@@ -215,6 +215,39 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
             return null;
         }
 
+        public bool HasInitialRotation(TimingTrack timingTrack, GameplayTrack gameplayTrack) {
+            Phrase phrase = songStructure.FirstPhrase;
+            TimingSequence sequence = FindSequenceFor(phrase, timingTrack);
+            GameplayPattern pattern = FindPatternFor(phrase, gameplayTrack);
+            if (pattern.directionChanges.Count == 0 || sequence.events.Count == 0) {
+                return false;
+            }
+
+            TimingEvent firstTime = sequence.events[0];
+            
+            return firstTime.startTime == 0 
+                   && firstTime.eventId == pattern.directionChanges[0].timingEventId;
+        }
+        
+        public float RotationUntil(TimingTrack timingTrack, GameplayTrack gameplayTrack, Phrase phrase, double relativeTime) {
+            float rotation = 0;
+            foreach (Section section in songStructure.sections) {
+                foreach (Phrase phraseInSection in section.phrases) {
+                    TimingSequence sequence = FindSequenceFor(phrase, timingTrack);
+                    GameplayPattern pattern = FindPatternFor(phrase, gameplayTrack);
+                    if (phrase == phraseInSection) {
+                        rotation += pattern.RotationUntil(relativeTime, sequence);
+                        return rotation;
+                    } else {
+                        rotation += pattern.TotalRotation;
+                    }
+                }
+            }
+
+            return rotation;
+        }
+        
+        
         private Dictionary<int, GameplayDirection> directions = new Dictionary<int, GameplayDirection>();
         private Dictionary<int, GameplayChangeTarget> targets = new Dictionary<int, GameplayChangeTarget>();
         private Dictionary<int, GameplayChangeWeapon> weapons = new Dictionary<int, GameplayChangeWeapon>();
@@ -238,6 +271,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
 
             bool loggedException = false;
 
+            float currentDirection = 0;
 
             foreach (Section section in songStructure.sections){
                 foreach (Phrase phrase in section.phrases) {
@@ -269,6 +303,8 @@ namespace NarayanaGames.BeatTheRhythm.Maps {
                             CondensedEvent condensedEvent = CreateCondensedEvent(ref eventIndex, phrase, timingTrack,
                                 sequence, timingEvent, gameplayTrack, pattern, events);
                             condensedEvent.Direction = directions[eventId];
+                            condensedEvent.PreviousDirection = currentDirection;
+                            currentDirection += condensedEvent.Direction.direction;
                         }
                         if (targets.ContainsKey(eventId)) {
                             CondensedEvent condensedEvent = CreateCondensedEvent(ref eventIndex, phrase, timingTrack,

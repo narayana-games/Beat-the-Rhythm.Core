@@ -1019,14 +1019,26 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
 
         public void AddDirectionEvent(Phrase phrase, TimingSequence sequence, GameplayPattern pattern, double impactTime) {
             TimingEvent timingEvent = FindTimingEvent(phrase, sequence, Appendage.Any, impactTime);
+            float lastDirection = currentMap.RotationUntil(currentTimingTrack, currentGameplayTrack, phrase, impactTime);
+            Phrase firstPhrase = currentMap.songStructure.FirstPhrase;
+            if (lastDirection == 0 && (impactTime > 0 || phrase != firstPhrase)) {
+                // test if we don't have a first one, if we don't => create it
+                if (currentMap.HasInitialRotation(currentTimingTrack, currentGameplayTrack)) {
+                    TimingSequence firstSequence = currentMap.FindSequenceFor(firstPhrase, currentTimingTrack);
+                    GameplayPattern firstPattern = currentMap.FindPatternFor(firstPhrase, currentGameplayTrack);
+                    AddDirectionEvent(firstPhrase, firstSequence, firstPattern, 0);
+                }
+            }
             GameplayDirection directionEvent = new GameplayDirection() {
-                timingEventId = timingEvent.eventId
+                timingEventId = timingEvent.eventId,
+                direction = lastDirection
             };
             AddEventToPattern(directionEvent, sequence, pattern);
 
             CondensedEvent condensedEvent = CreateCondensedEvent(
                 phrase, sequence, pattern, timingEvent);
 
+            condensedEvent.PreviousDirection = lastDirection;
             condensedEvent.Direction = directionEvent;
             
             onGameplayEventAdded.Invoke(condensedEvent, false);

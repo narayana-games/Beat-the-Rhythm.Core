@@ -20,12 +20,12 @@ using NarayanaGames.BeatTheRhythm.Maps.Structure;
 
 namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
 
-    [System.Serializable]
     /// <summary>
     ///     Has all the data relevant for a given gameplay event,
     ///     or timing event, when using the GamePlayevent and GameplayObstacle
     ///     lists.
     /// </summary>
+    [System.Serializable]
     public class CondensedEvent {
 
         public int Index = 0;
@@ -42,6 +42,7 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         public GameplayPattern GameplayPattern = null;
         
         // all except one of the following is usually null (in gameplay event lists)
+        public float PreviousDirection = 0F;
         public GameplayDirection Direction = null;
         public GameplayChangeTarget ChangeTarget = null;
         public GameplayChangeWeapon ChangeWeapon = null;

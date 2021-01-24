@@ -68,6 +68,38 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         ///     Direction changes are allowed at any time.
         /// </summary>
         public List<GameplayDirection> directionChanges = new List<GameplayDirection>();
+
+        /// <summary>
+        ///     The total rotation resulting from this gameplay pattern.
+        /// </summary>
+        public float TotalRotation {
+            get {
+                float rotation = 0;
+                foreach (GameplayDirection directionChange in directionChanges) {
+                    rotation += directionChange.direction;
+                }
+                return rotation;
+            }
+        }
+
+        /// <summary>
+        ///     The rotation until a specific time within this pattern.
+        /// </summary>
+        /// <param name="relativeTime">Relative time, starts at 0 at the beginning of this pattern</param>
+        /// <param name="sequence">The timing sequence, needed to look up timing events.</param>
+        /// <returns></returns>
+        public float RotationUntil(double relativeTime, TimingSequence sequence) {
+            float rotation = 0;
+            foreach (GameplayDirection directionChange in directionChanges) {
+                TimingEvent timingEvent = sequence.FindTimingEvent(directionChange.timingEventId);
+                if (timingEvent.startTime < relativeTime) {
+                    rotation += directionChange.direction;
+                } else {
+                    break;
+                }
+            }
+            return rotation;
+        }
         
         /// <summary>
         ///     Target changes are allowed at any time and will last

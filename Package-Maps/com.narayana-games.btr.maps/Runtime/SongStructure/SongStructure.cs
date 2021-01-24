@@ -65,6 +65,15 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
 
         /// <summary>List of sections of this recording.</summary>
         public List<Section> sections = new List<Section>();
+
+        /// <summary>
+        ///     Return the first phrase of this song structure.
+        /// </summary>
+        public Phrase FirstPhrase {
+            get {
+                return sections[0].phrases[0];
+            }
+        }
         
         /// <summary>
         ///     Moves phrase to previous section. Only works when phrase
@@ -478,7 +487,5 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Structure {
             
             FixPhraseIDs();
         }
-        
-        
     }
 }
