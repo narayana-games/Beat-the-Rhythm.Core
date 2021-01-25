@@ -27,7 +27,10 @@ namespace NarayanaGames.BeatTheRhythm.Maps.Tracks {
         /// <summary>Links this direction event to a timing event.</summary>
         public int timingEventId = 0;
 
-        /// <summary>What is the direction after this event!</summary>
+        /// <summary>
+        ///     How many degrees does this event change the direction?
+        ///     Positive values turn right / clockwise. Negative left/counter-clockwise.
+        /// </summary>
         public float direction = 0;
     }
 }

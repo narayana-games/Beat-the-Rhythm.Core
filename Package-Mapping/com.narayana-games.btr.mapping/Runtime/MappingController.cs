@@ -836,7 +836,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 }
                 double impactTime = startTime + impactTimeRelative;
                 if (evt.Direction != null) {
-                    AddDirectionEvent(phrase, sequence, pattern, impactTime);
+                    AddDirectionEvent(phrase, sequence, pattern, impactTime, evt.Direction.direction);
                 }
                 if (evt.Event != null) {
                     AddGameplayEvent(phrase, sequence, pattern, evt.Event.pickupWith, impactTime, evt);
@@ -1017,7 +1017,7 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
         // [BowAndArrow] Current time: 0.554648526077099, minimum time left: 0.52267573696145, right: 1
         // BowAndArrow: 0.52 => probably 0.5
 
-        public void AddDirectionEvent(Phrase phrase, TimingSequence sequence, GameplayPattern pattern, double impactTime) {
+        public void AddDirectionEvent(Phrase phrase, TimingSequence sequence, GameplayPattern pattern, double impactTime, float direction) {
             TimingEvent timingEvent = FindTimingEvent(phrase, sequence, Appendage.Any, impactTime);
             float lastDirection = currentMap.RotationUntil(currentTimingTrack, currentGameplayTrack, phrase, impactTime);
             Phrase firstPhrase = currentMap.songStructure.FirstPhrase;
@@ -1026,12 +1026,12 @@ namespace NarayanaGames.BeatTheRhythm.Mapping {
                 if (currentMap.HasInitialRotation(currentTimingTrack, currentGameplayTrack)) {
                     TimingSequence firstSequence = currentMap.FindSequenceFor(firstPhrase, currentTimingTrack);
                     GameplayPattern firstPattern = currentMap.FindPatternFor(firstPhrase, currentGameplayTrack);
-                    AddDirectionEvent(firstPhrase, firstSequence, firstPattern, 0);
+                    AddDirectionEvent(firstPhrase, firstSequence, firstPattern, 0, 0);
                 }
             }
             GameplayDirection directionEvent = new GameplayDirection() {
                 timingEventId = timingEvent.eventId,
-                direction = lastDirection
+                direction = direction
             };
             AddEventToPattern(directionEvent, sequence, pattern);
 
